@@ -1,0 +1,27 @@
+"""Gemeinsame Basis aller OpenAirLog-Entitaeten."""
+from __future__ import annotations
+
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+from .const import DOMAIN
+from .coordinator import OpenAirLogCoordinator
+
+
+class OpenAirLogEntity(CoordinatorEntity[OpenAirLogCoordinator]):
+    # HA stellt den Geraetenamen dem Entitaetsnamen voran. Damit daraus keine
+    # Bandwurmnamen werden ("OpenAirLog Max Mustermann Losfahren"), heisst das
+    # Geraet schlicht "OpenAirLog" - der Kontoinhaber steht im Eintragstitel.
+    _attr_has_entity_name = True
+
+    def __init__(self, koordinator: OpenAirLogCoordinator, schluessel: str) -> None:
+        super().__init__(koordinator)
+        profil = koordinator.profil or {}
+        self._attr_unique_id = f"{profil.get('id', 'oal')}_{schluessel}"
+        self._attr_device_info = DeviceInfo(
+            identifiers={(DOMAIN, str(profil.get("id", "oal")))},
+            name="OpenAirLog",
+            manufacturer="OpenAirLog",
+            model=profil.get("crew_role") or "Flugbuch",
+            configuration_url="https://openairlog.de",
+        )

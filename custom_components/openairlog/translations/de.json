@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "OpenAirLog verbinden",
+        "description": "API-Schlüssel aus deinem OpenAirLog-Konto. Benötigte Scopes: flights:read, profile:read, statistics:read.",
+        "data": {
+          "api_key": "API-Schlüssel"
+        }
+      }
+    },
+    "error": {
+      "auth": "Schlüssel ungültig, gesperrt oder ohne die nötigen Scopes.",
+      "verbindung": "OpenAirLog ist nicht erreichbar."
+    },
+    "abort": {
+      "already_configured": "Dieses Konto ist bereits eingerichtet."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Zeiten und Wege",
+        "description": "Briefing zählt zum Dienst und gilt nur vor echten Flügen. Die Umlauf-Grenze bestimmt, ab welcher Standzeit an der Basis ein neuer Dienst beginnt.",
+        "data": {
+          "briefing_minuten": "Briefing vor Abflug",
+          "debriefing_minuten": "Debriefing nach Ankunft",
+          "anfahrt_minuten": "Weg von zuhause zur Basis",
+          "heimweg_minuten": "Weg von der Basis nach Hause",
+          "turnaround_minuten": "Umlauf-Grenze an der Basis",
+          "basis_flughafen": "Basis-Flughafen (leer = aus dem Profil)"
+        }
+      },
+      "codes": {
+        "title": "Dienstcodes",
+        "description": "Kommagetrennt eintragen. Alles, was hier nicht steht, gilt als Dienst — lieber einmal zu viel vorheizen als den Dienst verpassen.",
+        "data": {
+          "codes_frei": "Codes für frei",
+          "codes_standby": "Codes für Bereitschaft",
+          "codes_schulung": "Codes für Schulung",
+          "tage_voraus": "Vorschau (Tage)",
+          "tage_rueckblick": "Rückblick (Tage)"
+        }
+      },
+      "lufthansa": {
+        "title": "Lufthansa Live-Status (optional)",
+        "description": "Kostenloser Zugang über developer.lufthansa.com — dort registrieren und eine App anlegen, dann Client-ID und Secret hier eintragen. Liefert Verspätung, Annullierung, Gate und Terminal zum anstehenden Flug. Abrufbar sind nur 5 Tage voraus, deshalb wird ausschließlich im Fenster um einen Flug herum angefragt. Felder leer lassen, um die Funktion auszuschalten.",
+        "data": {
+          "lh_client_id": "Client-ID",
+          "lh_client_secret": "Client-Secret",
+          "lh_fenster_stunden": "Abfragen ab wie vielen Stunden vor Abflug"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "domain": "openairlog",
+  "name": "OpenAirLog",
+  "codeowners": [
+    "@jfischer87"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/jfischer87/openairlog-ha",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jfischer87/openairlog-ha/issues",
+  "requirements": [],
+  "version": "1.0.3",
+  "dependencies": [
+    "http",
+    "frontend"
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect OpenAirLog",
+        "description": "API key from your OpenAirLog account. Required scopes: flights:read, profile:read, statistics:read.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "auth": "Key invalid, revoked or missing scopes.",
+      "verbindung": "OpenAirLog is not reachable."
+    },
+    "abort": {
+      "already_configured": "This account is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Times and commute",
+        "description": "Briefing counts as duty and applies only before actual flights. The trip threshold defines how much ground time at base starts a new duty.",
+        "data": {
+          "briefing_minuten": "Briefing before departure",
+          "debriefing_minuten": "Debriefing after arrival",
+          "anfahrt_minuten": "Commute home to base",
+          "heimweg_minuten": "Commute base to home",
+          "turnaround_minuten": "Trip threshold at base",
+          "basis_flughafen": "Base airport (empty = from profile)"
+        }
+      },
+      "codes": {
+        "title": "Duty codes",
+        "description": "Comma separated. Anything not listed counts as duty.",
+        "data": {
+          "codes_frei": "Codes meaning off",
+          "codes_standby": "Codes meaning standby",
+          "codes_schulung": "Codes meaning training",
+          "tage_voraus": "Look ahead (days)",
+          "tage_rueckblick": "Look back (days)"
+        }
+      },
+      "lufthansa": {
+        "title": "Lufthansa live status (optional)",
+        "description": "Free access via developer.lufthansa.com — register, create an app, then enter client ID and secret here. Provides delay, cancellation, gate and terminal for the upcoming flight. Only 5 days ahead are available, so it is queried within a window around a flight only. Leave empty to disable.",
+        "data": {
+          "lh_client_id": "Client ID",
+          "lh_client_secret": "Client secret",
+          "lh_fenster_stunden": "Query from how many hours before departure"
+        }
+      }
+    }
+  }
+}
