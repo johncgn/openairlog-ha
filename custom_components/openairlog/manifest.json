@@ -10,7 +10,7 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/jfischer87/openairlog-ha/issues",
   "requirements": [],
-  "version": "1.3.0",
+  "version": "1.4.0",
   "dependencies": [
     "http",
     "frontend",

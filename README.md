@@ -104,23 +104,21 @@ gegen die API geprüft.
 Nicht aufgeführte Dienstcodes gelten als **Dienst** — lieber einmal umsonst
 vorheizen als den Dienst verpassen.
 
-## Lufthansa Live-Status (optional)
+## Lufthansa Live-Status (vorbereitet, derzeit inaktiv)
 
-Wer bei Lufthansa fliegt, kann den **kostenlosen** Zugang der
-[Lufthansa Open API](https://developer.lufthansa.com) hinterlegen. Dann kommen
-`sensor.flugstatus` (*pünktlich · verspätet · gestrichen · gelandet*) und
-`sensor.verspaetung` (Minuten) dazu, samt Gate und Terminal als Attribute.
-Anders als reine Tracking-Dienste liefert die Lufthansa-API **geplante und
-tatsächliche Zeiten** — die Verspätung ist damit echte Airline-Information.
+Für Lufthansa-Crews ist eine Anbindung an die
+[Lufthansa Open API](https://developer.lufthansa.com) fertig eingebaut: Sie
+liefert `sensor.flugstatus` (*pünktlich · verspätet · gestrichen · gelandet*)
+und `sensor.verspaetung`, dazu Gate und Terminal. Anders als reine
+Tracking-Dienste liefert sie **geplante und tatsächliche Zeiten** — die
+Verspätung ist damit echte Airline-Information.
 
 > **Stand September 2026:** Lufthansa hat die Registrierung für neue Entwickler
-> ausgesetzt („Registration to OpenAPI is on hold until further notice"). Wer
-> bereits Zugangsdaten besitzt, kann sie eintragen; neue lassen sich derzeit
-> nicht anlegen. Bis dahin bleibt die Funktion einfach inaktiv.
-
-**Grenzen:** Nur 7 Tage rückwärts bis 5 Tage voraus, und das Kontingent ist
-begrenzt. Deshalb wird nur abgefragt, wenn ein Flug läuft oder in den nächsten
-Stunden ansteht — an Bodendiensttagen gar nicht.
+> ausgesetzt („Registration to OpenAPI is on hold until further notice").
+> Deshalb ist der Einrichtungsschritt aus den Optionen **ausgeblendet** — er
+> ließe sich mit einer Zeile in `config_flow.py` wieder einhängen, sobald es
+> wieder Zugänge gibt. Wer bereits Zugangsdaten hinterlegt hat, behält sie und
+> bekommt die Live-Sensoren weiterhin.
 
 ## Serverlast
 

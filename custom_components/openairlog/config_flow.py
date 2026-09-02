@@ -80,7 +80,7 @@ class OpenAirLogConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class OpenAirLogOptionsFlow(OptionsFlow):
-    """Drei Schritte: Zeiten und Wege, Dienstcodes, Lufthansa-Zugang."""
+    """Zwei Schritte: erst Zeiten und Wege, dann die Dienstcodes."""
 
     def __init__(self, entry: ConfigEntry) -> None:
         self.entry = entry
@@ -132,8 +132,12 @@ class OpenAirLogOptionsFlow(OptionsFlow):
                          CONF_TAGE_RUECK):
                 if feld in daten:
                     daten[feld] = int(float(daten[feld]))
-            self._daten = daten
-            return await self.async_step_lufthansa()
+            # Bereits hinterlegte Lufthansa-Zugangsdaten nicht verlieren, auch
+            # wenn der Schritt derzeit ausgeblendet ist.
+            for feld in (CONF_LH_ID, CONF_LH_SECRET, CONF_LH_FENSTER):
+                if feld not in daten and feld in self.entry.options:
+                    daten[feld] = self.entry.options[feld]
+            return self.async_create_entry(title="", data=daten)
 
         o = self.entry.options
         schema = vol.Schema({
@@ -153,10 +157,19 @@ class OpenAirLogOptionsFlow(OptionsFlow):
                          default=o.get(CONF_TAGE_RUECK, STANDARD_TAGE_RUECK)): vol.Coerce(int),
         })
         return self.async_show_form(step_id="codes", data_schema=schema,
-                                    last_step=False)
+                                    last_step=True)
 
     async def async_step_lufthansa(self, user_input: dict[str, Any] | None = None):
-        """Schritt 3: Lufthansa Open API - optional, liefert Live-Status."""
+        """Lufthansa Open API - derzeit NICHT im Dialog verlinkt.
+
+        Lufthansa hat die Entwickler-Registrierung ausgesetzt ("Registration to
+        OpenAPI is on hold until further notice"), neue Zugaenge gibt es also
+        nicht. Der Schritt bleibt hier stehen, damit er sich mit einer Zeile
+        wieder einhaengen laesst: in async_step_codes statt des
+        async_create_entry ein "return await self.async_step_lufthansa()".
+        Wer bereits Zugangsdaten hat, behaelt sie - sie werden beim Speichern
+        mitgenommen und die Live-Sensoren erscheinen weiterhin.
+        """
         if user_input is not None:
             daten = {**self._daten, **user_input}
             for feld in (CONF_LH_ID, CONF_LH_SECRET):
