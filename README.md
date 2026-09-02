@@ -1,12 +1,10 @@
-# OpenAirLog für Home Assistant
+# OpenAirLog-Addon für Home Assistant
 
-**ein privates Aden für [OpenAirLog](https://openairlog.de) .**
+**ein privates Addon für [OpenAirLog](https://openairlog.de) .**
 
 OpenAirLog ist ein richtig starkes Flugbuch: Dienstplan, Statistiken,
 Auswertungen, sauber gemacht und kostenlos. Diese Integration verbindet das Flugbuch
 mit dem, was zuhause passieren soll.
-
-Denn dein Flugbuch weiß, wann du wiederkommst. Deine Heizung weiß es nicht.
 
 Genau dafür ist das hier gedacht: Dienste als Kalender und Sensoren in Home
 Assistant, damit Automationen daran andocken können — Heizung hochfahren, bevor
