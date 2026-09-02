@@ -195,12 +195,19 @@ class OpenAirLogCard extends HTMLElement {
   }
 }
 
-customElements.define("openairlog-card", OpenAirLogCard);
+// Doppeltes Registrieren abfangen: Wird die Datei zweimal geladen (Ressource
+// und Rueckfallweg), wuerde customElements.define sonst werfen - und die Karte
+// bliebe als "Konfigurationsfehler" stehen.
+if (!customElements.get("openairlog-card")) {
+  customElements.define("openairlog-card", OpenAirLogCard);
+}
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "openairlog-card",
-  name: "OpenAirLog Dienst",
-  description: "Zeigt den nächsten oder laufenden Umlauf mit allen Abschnitten.",
-  preview: true,
-});
+if (!window.customCards.some((k) => k.type === "openairlog-card")) {
+  window.customCards.push({
+    type: "openairlog-card",
+    name: "OpenAirLog Dienst",
+    description: "Zeigt den nächsten oder laufenden Umlauf mit allen Abschnitten.",
+    preview: true,
+  });
+}
