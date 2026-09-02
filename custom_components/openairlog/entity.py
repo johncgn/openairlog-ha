@@ -14,9 +14,11 @@ class OpenAirLogEntity(CoordinatorEntity[OpenAirLogCoordinator]):
     # Geraet schlicht "OpenAirLog" - der Kontoinhaber steht im Eintragstitel.
     _attr_has_entity_name = True
 
-    def __init__(self, koordinator: OpenAirLogCoordinator, schluessel: str) -> None:
+    def __init__(self, koordinator: OpenAirLogCoordinator, schluessel: str,
+                 object_id: str | None = None) -> None:
         super().__init__(koordinator)
         profil = koordinator.profil or {}
+        self._object_id = object_id or schluessel
         self._attr_unique_id = f"{profil.get('id', 'oal')}_{schluessel}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, str(profil.get("id", "oal")))},
@@ -25,3 +27,7 @@ class OpenAirLogEntity(CoordinatorEntity[OpenAirLogCoordinator]):
             model=profil.get("crew_role") or "Flugbuch",
             configuration_url="https://openairlog.de",
         )
+
+    @property
+    def suggested_object_id(self) -> str | None:
+        return self._object_id

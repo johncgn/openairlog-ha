@@ -31,5 +31,6 @@ class ImDienstSensor(OpenAirLogEntity, BinarySensorEntity):
         d = (self.coordinator.data or {}).get("aktuell")
         if not d:
             return {}
-        return {"dienstcode": d.get("code"), "flugnummer": d.get("flugnummer"),
+        return {"dienstcode": d.get("code"),
+                "flugnummern": ", ".join(d.get("flugnummern") or []),
                 "von": d.get("von"), "nach": d.get("nach"), "ende": d.get("ende")}

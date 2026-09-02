@@ -5,8 +5,10 @@ import logging
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import AuthFehler, OpenAirLogApi, OpenAirLogFehler, RateLimitFehler
 from .lufthansa import LhFehler, LufthansaApi, auswerten as lh_auswerten
@@ -39,14 +41,24 @@ def _zeit(tag: str, hhmm: str | None) -> datetime | None:
     Nachgerechnet an einem Langstreckenflug (EDDF->KIAH): die Differenz aus
     off_block und on_block entspricht exakt block_minutes. Das geht nur auf,
     wenn beide Zeiten in DERSELBEN Zone stehen - die API liefert UTC.
+    ISO-Zeitstempel (mit Offset oder Z) werden direkt uebernommen.
     """
     if not hhmm:
         return None
-    teile = str(hhmm).split(":")
+    roh = str(hhmm).strip()
+    if "T" in roh or roh.endswith("Z"):
+        try:
+            parsed = datetime.fromisoformat(roh.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    teile = roh.split(":")
     try:
         std, minute = int(teile[0]), int(teile[1])
         d = date.fromisoformat(tag)
-    except (ValueError, IndexError):
+    except (ValueError, IndexError, TypeError):
         return None
     return datetime(d.year, d.month, d.day, std, minute, tzinfo=timezone.utc)
 
@@ -56,9 +68,19 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass: HomeAssistant, api: OpenAirLogApi,
                  optionen: dict[str, Any],
-                 lh: LufthansaApi | None = None) -> None:
-        super().__init__(hass, _LOGGER, name="OpenAirLog",
-                         update_interval=UPDATE_INTERVALL)
+                 lh: LufthansaApi | None = None,
+                 config_entry: ConfigEntry | None = None) -> None:
+        kwargs: dict[str, Any] = {
+            "name": "OpenAirLog",
+            "update_interval": UPDATE_INTERVALL,
+        }
+        if config_entry is not None:
+            kwargs["config_entry"] = config_entry
+        try:
+            super().__init__(hass, _LOGGER, **kwargs)
+        except TypeError:
+            kwargs.pop("config_entry", None)
+            super().__init__(hass, _LOGGER, **kwargs)
         self.api = api
         self.lh = lh
         self.optionen = optionen
@@ -67,30 +89,54 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         self._durchlauf = 0
 
     # ------------------------------------------------------------------ Hilfen
+    def _codes(self, schluessel: str, standard: list[str] | None = None) -> set[str]:
+        """Dienstcodes aus den Optionen, ohne leere Listen still zu ersetzen."""
+        if schluessel in self.optionen:
+            return {str(c).upper() for c in (self.optionen.get(schluessel) or [])}
+        return {str(c).upper() for c in (standard or [])}
+
     def _kategorie(self, eintrag: dict) -> str:
         """Ordnet einen Eintrag einer Kategorie zu."""
         code = eintrag.get("duty_code")
         if not code:
             # Kein Dienstcode, aber Flugnummer -> echter Flug
             return KAT_DIENST if eintrag.get("flight_number") else KAT_FREI
-        if code in set(self.optionen.get("codes_frei") or []):
+        code_u = str(code).upper()
+        if code_u in self._codes("codes_frei"):
             return KAT_FREI
-        if code in set(self.optionen.get("codes_standby") or []):
+        if code_u in self._codes("codes_standby"):
             return KAT_STANDBY
-        if code in set(self.optionen.get(CONF_CODES_WBT) or STANDARD_CODES_WBT):
+        if code_u in self._codes(CONF_CODES_WBT, STANDARD_CODES_WBT):
             return KAT_WBT
-        if code in set(self.optionen.get("codes_schulung") or []):
+        if code_u in self._codes("codes_schulung"):
             return KAT_SCHULUNG
         # Unbekannte Codes gelten als Dienst - lieber einmal zu viel heizen
         # als den Wecker verpassen.
-        return STANDARD_KATEGORIEN.get(code, KAT_DIENST)
+        return STANDARD_KATEGORIEN.get(code_u, KAT_DIENST)
+
+    @staticmethod
+    def _uhr(wert: Any) -> str:
+        """HH:MM aus '13:40' oder ISO-Zeitstempel, fuer die Dubletten-Erkennung."""
+        s = str(wert or "")
+        if "T" in s:
+            try:
+                return s.split("T", 1)[1][:5]
+            except IndexError:
+                return s[:5]
+        return s[:5]
 
     @staticmethod
     def _schluessel(e: dict) -> tuple:
         """Erkennungsmerkmal, um Roster- und Logbuch-Dubletten zu bündeln."""
         start = e.get("scheduled_off_block") or e.get("off_block") or ""
         ende = e.get("scheduled_on_block") or e.get("on_block") or ""
-        return (e.get("date"), e.get("duty_code"), str(start)[:5], str(ende)[:5])
+        return (
+            e.get("date"),
+            e.get("duty_code"),
+            e.get("flight_number"),
+            OpenAirLogCoordinator._uhr(start),
+            OpenAirLogCoordinator._uhr(ende),
+        )
 
     @staticmethod
     def _gehalt(e: dict) -> int:
@@ -99,7 +145,7 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
 
     # ------------------------------------------------------------------ Abruf
     async def _async_update_data(self) -> dict[str, Any]:
-        heute = date.today()
+        heute = dt_util.now().date()
         von = heute - timedelta(days=int(self.optionen.get("tage_rueckblick", 7)))
         bis = heute + timedelta(days=int(self.optionen.get("tage_voraus", 60)))
 
@@ -115,8 +161,9 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         except AuthFehler as err:
             raise UpdateFailed(f"Zugang abgelehnt: {err}") from err
         except RateLimitFehler as err:
-            # Nicht als Fehler behandeln - beim naechsten Lauf klappt es wieder.
             _LOGGER.warning("Rate-Limit erreicht, warte %ss", err.wartezeit)
+            if self.data:
+                return self.data
             raise UpdateFailed(str(err)) from err
         except OpenAirLogFehler as err:
             raise UpdateFailed(str(err)) from err
@@ -131,8 +178,9 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         # --- zu Diensten aufbereiten ------------------------------------
         dienste: list[dict] = []
         for e in gebuendelt.values():
-            beginn = _zeit(e["date"], e.get("scheduled_off_block") or e.get("off_block"))
-            ende = _zeit(e["date"], e.get("scheduled_on_block") or e.get("on_block"))
+            tag = e.get("date") or ""
+            beginn = _zeit(tag, e.get("scheduled_off_block") or e.get("off_block"))
+            ende = _zeit(tag, e.get("scheduled_on_block") or e.get("on_block"))
             if beginn and ende and ende <= beginn:
                 ende += timedelta(days=1)          # ueber Mitternacht
             dienste.append({
@@ -233,7 +281,7 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         debriefing_sim = timedelta(
             minutes=int(o.get(CONF_DEBRIEFING_SIM_MIN, STANDARD_DEBRIEFING_SIM_MIN)))
         puffer = timedelta(minutes=int(o.get(CONF_PUFFER_MIN, STANDARD_PUFFER_MIN)))
-        codes_sim = {str(c).upper() for c in (o.get(CONF_CODES_SIM) or STANDARD_CODES_SIM)}
+        codes_sim = self._codes(CONF_CODES_SIM, STANDARD_CODES_SIM)
         turnaround = timedelta(minutes=int(o.get("turnaround_minuten", STANDARD_TURNAROUND_MIN)))
         basis = (o.get("basis_flughafen")
                  or (self.profil or {}).get("base_airport") or "").upper()

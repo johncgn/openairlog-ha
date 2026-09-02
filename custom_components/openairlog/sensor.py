@@ -17,14 +17,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry,
     k = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([
         DienstZeitSensor(k, "naechster_dienst", "Nächster Dienst", "beginn", 0),
-        DienstZeitSensor(k, "naechster_dienst_ende", "Dienstende", "ende", 0),
+        DienstZeitSensor(k, "naechster_dienst_ende", "Dienstende", "ende", 0,
+                         object_id="dienstende"),
         DienstZeitSensor(k, "zuhause", "Voraussichtlich zuhause",
-                         "ende", int(entry.options.get(CONF_HEIMWEG_MIN, 0))),
+                         "ende", int(entry.options.get(CONF_HEIMWEG_MIN, 0)),
+                         object_id="voraussichtlich_zuhause"),
         NaechsterSchrittSensor(k,
                                int(entry.options.get(CONF_ANFAHRT_MIN, 0)),
                                int(entry.options.get(CONF_HEIMWEG_MIN, 0))),
-        StatistikSensor(k, "flugstunden", "Flugstunden gesamt", "block_minutes", 60),
-        StatistikSensor(k, "landungen", "Landungen gesamt", "landings", 1),
+        StatistikSensor(k, "flugstunden", "Flugstunden gesamt", "block_minutes", 60,
+                        object_id="flugstunden_gesamt"),
+        StatistikSensor(k, "landungen", "Landungen gesamt", "landings", 1,
+                        object_id="landungen_gesamt"),
     ])
     # Live-Sensoren nur, wenn Lufthansa-Zugangsdaten hinterlegt sind.
     if entry.options.get(CONF_LH_ID):
@@ -36,8 +40,9 @@ class DienstZeitSensor(OpenAirLogEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
-    def __init__(self, koordinator, schluessel, name, feld, versatz_min) -> None:
-        super().__init__(koordinator, schluessel)
+    def __init__(self, koordinator, schluessel, name, feld, versatz_min,
+                 object_id=None) -> None:
+        super().__init__(koordinator, schluessel, object_id=object_id)
         self._attr_name = name
         self._feld = feld
         self._versatz = timedelta(minutes=versatz_min)
@@ -102,7 +107,7 @@ class NaechsterSchrittSensor(OpenAirLogEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(self, koordinator, anfahrt_min: int, heimweg_min: int) -> None:
-        super().__init__(koordinator, "naechster_schritt")
+        super().__init__(koordinator, "naechster_schritt", object_id="losfahren")
         self._anfahrt = timedelta(minutes=anfahrt_min)
         self._heimweg = timedelta(minutes=heimweg_min)
 
@@ -204,8 +209,9 @@ class VerspaetungSensor(OpenAirLogEntity, SensorEntity):
 class StatistikSensor(OpenAirLogEntity, SensorEntity):
     """Summenwerte aus /statistics."""
 
-    def __init__(self, koordinator, schluessel, name, feld, teiler) -> None:
-        super().__init__(koordinator, schluessel)
+    def __init__(self, koordinator, schluessel, name, feld, teiler,
+                 object_id=None) -> None:
+        super().__init__(koordinator, schluessel, object_id=object_id)
         self._attr_name = name
         self._feld = feld
         self._teiler = teiler

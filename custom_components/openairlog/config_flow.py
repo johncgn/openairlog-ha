@@ -62,14 +62,19 @@ class OpenAirLogConfigFlow(ConfigFlow, domain=DOMAIN):
             except OpenAirLogFehler:
                 fehler["base"] = "verbindung"
             else:
-                await self.async_set_unique_id(str(profil.get("id")))
-                self._abort_if_unique_id_configured()
+                konto = profil.get("id")
+                if konto is not None:
+                    await self.async_set_unique_id(str(konto))
+                    self._abort_if_unique_id_configured()
                 return self.async_create_entry(
                     title=profil.get("name") or "OpenAirLog", data=user_input)
 
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({vol.Required(CONF_API_KEY): str}),
+            data_schema=vol.Schema({
+                vol.Required(CONF_API_KEY): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD)),
+            }),
             errors=fehler,
         )
 

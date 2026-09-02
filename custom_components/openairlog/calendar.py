@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, KAT_DIENST, KAT_FREI, KAT_STANDBY
+from .const import DOMAIN, KAT_DIENST, KAT_FREI, KAT_SCHULUNG, KAT_STANDBY
 from .entity import OpenAirLogEntity
 
 
@@ -61,9 +61,11 @@ class DienstplanKalender(OpenAirLogEntity, CalendarEntity):
                 summary=_titel(u), start=u["beginn"], end=u["ende"],
                 location=u.get("von") or "", description=_beschreibung(u)))
 
-        # Freie Tage und Schulungen ganztaegig - die Uhrzeiten sind dort ohne Aussage
+        # Umlauf-Termine decken timed Dienste/Standby/Schulung bereits ab.
+        # Frei, WBT und Eintraege ohne Uhrzeit kommen als ganztaegig dazu.
         for d in daten.get("dienste", []):
-            if d["kategorie"] in (KAT_DIENST, KAT_STANDBY):
+            if (d["kategorie"] in (KAT_DIENST, KAT_STANDBY, KAT_SCHULUNG)
+                    and d.get("beginn") and d.get("ende")):
                 continue
             try:
                 tag = date.fromisoformat(d["datum"])

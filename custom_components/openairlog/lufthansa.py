@@ -107,13 +107,16 @@ def _zeit(block: dict | None) -> datetime | None:
     """Liest einen UTC-Zeitstempel aus der verschachtelten Struktur."""
     if not isinstance(block, dict):
         return None
-    wert = (block.get("DateTime") if isinstance(block, dict) else None)
+    wert = block.get("DateTime")
     if not wert:
         return None
     try:
-        return datetime.fromisoformat(str(wert)).replace(tzinfo=timezone.utc)
+        parsed = datetime.fromisoformat(str(wert).replace("Z", "+00:00"))
     except ValueError:
         return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def auswerten(antwort: dict, geplant_ab: datetime | None) -> dict | None:

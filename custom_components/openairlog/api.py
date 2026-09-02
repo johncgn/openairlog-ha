@@ -47,7 +47,11 @@ class OpenAirLogApi:
                     raise AuthFehler(f"HTTP {resp.status} fuer {pfad}")
                 if resp.status == 429:
                     # Die API nennt die Wartezeit im Header - den respektieren wir.
-                    raise RateLimitFehler(int(resp.headers.get("Retry-After", "60")))
+                    try:
+                        warte = int(resp.headers.get("Retry-After", "60"))
+                    except (TypeError, ValueError):
+                        warte = 60
+                    raise RateLimitFehler(warte)
                 if resp.status != 200:
                     raise OpenAirLogFehler(f"HTTP {resp.status} fuer {pfad}")
                 return await resp.json()

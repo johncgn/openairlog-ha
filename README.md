@@ -32,14 +32,14 @@ die so etwas hier überhaupt erst möglich macht.
 
 | Entität | Bedeutung |
 |---|---|
-| `calendar.dienstplan` | Alle Umläufe und freien Tage als Kalender |
-| `binary_sensor.im_dienst` | Läuft gerade ein Dienst? |
-| `sensor.naechster_dienst` | **Briefing-Beginn** des nächsten Umlaufs |
-| `sensor.dienstende` | Zurück an der Basis |
-| `sensor.losfahren` | Wechselt mit: vor dem Dienst die Anfahrt, währenddessen die Heimkehr |
-| `sensor.voraussichtlich_zuhause` | Dienstende plus Heimweg |
-| `sensor.flugstunden_gesamt` | Blockstunden aus der Statistik |
-| `sensor.landungen_gesamt` | Landungen aus der Statistik |
+| `calendar.openairlog_dienstplan` | Alle Umläufe und freien Tage als Kalender |
+| `binary_sensor.openairlog_im_dienst` | Läuft gerade ein Dienst? |
+| `sensor.openairlog_naechster_dienst` | **Briefing-Beginn** des nächsten Umlaufs |
+| `sensor.openairlog_dienstende` | Zurück an der Basis |
+| `sensor.openairlog_losfahren` | Wechselt mit: vor dem Dienst die Anfahrt, währenddessen die Heimkehr |
+| `sensor.openairlog_voraussichtlich_zuhause` | Dienstende plus Heimweg |
+| `sensor.openairlog_flugstunden_gesamt` | Blockstunden aus der Statistik |
+| `sensor.openairlog_landungen_gesamt` | Landungen aus der Statistik |
 
 ## Dashboard-Karte
 

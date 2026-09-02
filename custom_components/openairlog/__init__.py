@@ -121,7 +121,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     lh_id = entry.options.get(CONF_LH_ID)
     lh_secret = entry.options.get(CONF_LH_SECRET)
     lh = LufthansaApi(session, lh_id, lh_secret) if lh_id and lh_secret else None
-    koordinator = OpenAirLogCoordinator(hass, api, dict(entry.options), lh)
+    koordinator = OpenAirLogCoordinator(hass, api, dict(entry.options), lh, entry)
     await koordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = koordinator

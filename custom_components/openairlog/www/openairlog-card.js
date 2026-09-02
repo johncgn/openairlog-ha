@@ -34,12 +34,15 @@ function restzeit(ziel) {
 class OpenAirLogCard extends HTMLElement {
   setConfig(config) {
     this._config = { titel: "Dienst", ...config };
-    this.attachShadow({ mode: "open" });
+    if (!this.shadowRoot) {
+      this.attachShadow({ mode: "open" });
+    }
   }
 
   static getStubConfig(hass) {
-    const e = Object.keys(hass.states).find((x) => x.includes("nachster_dienst"));
-    return { entity: e || "sensor.openairlog_nachster_dienst" };
+    const e = Object.keys(hass.states).find((x) =>
+      x.endsWith("_naechster_dienst") || x.endsWith("_nachster_dienst"));
+    return { entity: e || "sensor.openairlog_naechster_dienst" };
   }
 
   getCardSize() { return 4; }
@@ -49,28 +52,38 @@ class OpenAirLogCard extends HTMLElement {
     this._render();
   }
 
-  _finde(teil) {
+  _finde(...teile) {
     const ids = Object.keys(this._hass.states);
-    return ids.find((x) => x.startsWith("sensor.openairlog") && x.includes(teil))
-        || ids.find((x) => x.startsWith("binary_sensor.openairlog") && x.includes(teil));
+    for (const teil of teile) {
+      if (!teil) continue;
+      const hit = ids.find((x) => x.endsWith(`_${teil}`) || x.endsWith(`.${teil}`));
+      if (hit) return hit;
+    }
+    return undefined;
   }
 
   _render() {
     if (!this._hass || !this.shadowRoot) return;
     const s = this._hass.states;
-    const haupt = s[this._config.entity] || s[this._finde("nachster_dienst")];
+    const imDienst = (s[this._finde("im_dienst")] || {}).state === "on";
+    const naechster = s[this._config.entity]
+      || s[this._finde("naechster_dienst")]
+      || s[this._finde("nachster_dienst")];
+    const ende = s[this._finde("dienstende")];
+    // Waehrend des Dienstes gehoeren Beine und Zeiten zum laufenden Umlauf
+    // (Dienstende-Sensor), nicht zum naechsten.
+    const haupt = (imDienst && ende) ? ende : naechster;
     if (!haupt) {
       this.shadowRoot.innerHTML = `<ha-card><div class="leer">OpenAirLog: keine Daten</div>${this._css()}</ha-card>`;
       return;
     }
 
     const a = haupt.attributes || {};
-    const imDienst = (s[this._finde("im_dienst")] || {}).state === "on";
-    const ende = s[this._finde("dienstende")];
-    const los = s[this._finde("losfahren")];
-    const heim = s[this._finde("voraussichtlich_zuhause")];
+    const los = s[this._finde(
+      "losfahren", "naechster_schritt", "zuruck_zuhause", "zurueck_zuhause")];
+    const heim = s[this._finde("voraussichtlich_zuhause", "zuhause")];
 
-    const beginn = d(haupt.state);
+    const beginn = d(a.briefing) || (!imDienst ? d(haupt.state) : null);
     const endeD = d(ende && ende.state);
     const legs = Array.isArray(a.legs) ? a.legs : [];
     const mehrtaegig = a.mehrtaegig;
