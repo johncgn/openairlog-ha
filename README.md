@@ -1,11 +1,10 @@
 # OpenAirLog für Home Assistant
 
-**Kein Ersatz für [OpenAirLog](https://openairlog.de) — eine Brücke dorthin.**
+**ein privates Aden für [OpenAirLog](https://openairlog.de) .**
 
 OpenAirLog ist ein richtig starkes Flugbuch: Dienstplan, Statistiken,
-Auswertungen, sauber gemacht und kostenlos. Diese Integration baut davon
-bewusst **nichts** nach. Sie schließt nur eine einzige Lücke — die zwischen
-deinen Dienstplandaten und dem, was zuhause passieren soll.
+Auswertungen, sauber gemacht und kostenlos. Diese Integration verbindet das Flugbuch
+mit dem, was zuhause passieren soll.
 
 Denn dein Flugbuch weiß, wann du wiederkommst. Deine Heizung weiß es nicht.
 
@@ -28,11 +27,8 @@ die so etwas hier überhaupt erst möglich macht.
 > **Kein offizielles Projekt.** Ich bin schlicht Nutzer von OpenAirLog — nicht
 > an der Entwicklung beteiligt, in keiner Weise damit verbunden, und profitiere
 > einfach von seiner Arbeit. Diese Integration ist privat entstanden und wird
-> hier von mir gepflegt. Fragen und Fehler dazu also bitte **ins Repo hier**,
-> nicht zu OpenAirLog — der Entwickler hat damit nichts zu tun.
->
-> Und weil der Dienst kostenlos ist: Die Integration fragt bewusst sparsam ab,
-> siehe [Serverlast](#serverlast).
+> hier von mir gepflegt. Fragen und Fehler dazu also bitte **ins Repo hier**.
+
 
 ## Entitäten
 
@@ -130,42 +126,6 @@ gegen die API geprüft.
 
 Nicht aufgeführte Dienstcodes gelten als **Dienst** — lieber einmal umsonst
 vorheizen als den Dienst verpassen.
-
-## Lufthansa Live-Status (vorbereitet, derzeit inaktiv)
-
-Für Lufthansa-Crews ist eine Anbindung an die
-[Lufthansa Open API](https://developer.lufthansa.com) fertig eingebaut: Sie
-liefert `sensor.flugstatus` (*pünktlich · verspätet · gestrichen · gelandet*)
-und `sensor.verspaetung`, dazu Gate und Terminal. Anders als reine
-Tracking-Dienste liefert sie **geplante und tatsächliche Zeiten** — die
-Verspätung ist damit echte Airline-Information.
-
-> **Stand September 2026:** Lufthansa hat die Registrierung für neue Entwickler
-> ausgesetzt („Registration to OpenAPI is on hold until further notice").
-> Deshalb ist der Einrichtungsschritt aus den Optionen **ausgeblendet** — er
-> ließe sich mit einer Zeile in `config_flow.py` wieder einhängen, sobald es
-> wieder Zugänge gibt. Wer bereits Zugangsdaten hinterlegt hat, behält sie und
-> bekommt die Live-Sensoren weiterhin.
-
-## Serverlast
-
-Die Integration geht bewusst sparsam mit OpenAirLog um — das Projekt ist Freeware:
-
-| Abruf | Häufigkeit | Pro Tag |
-|---|---|---|
-| `/flights` (Dienste) | alle 30 Minuten | 48 |
-| `/statistics` | alle 2 Stunden | 12 |
-| `/profile` | einmal je Neustart | ~1 |
-
-Rund **60 Anfragen pro Tag und Nutzer** — weit unter dem Limit von 120 pro Minute.
-
-## Hinweise
-
-* **Zeitzone:** Die API liefert Zeiten in UTC; Home Assistant rechnet sie in deine
-  lokale Zeit um.
-* **Doppelte Einträge:** Ein Dienst erscheint teils zweimal — einmal aus dem
-  Dienstplan, einmal aus dem Flugbuch. Die Integration führt beide zusammen und
-  behält den vollständigeren Eintrag.
 
 ## Beispiel-Automation
 
