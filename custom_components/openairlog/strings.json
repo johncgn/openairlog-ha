@@ -36,7 +36,7 @@
       },
       "codes": {
         "title": "Duty codes",
-        "description": "What do the abbreviations mean? On-site training such as ground course or CRM counts as duty and triggers a departure time; web based training at your own computer does not. Codes not listed count as duty — better to heat once too often.",
+        "description": "These fields are only needed if your airline uses different codes. For Lufthansa the integration already ships the official symbol list — simulator, on-site training, web based training and days off are recognised automatically. Whatever you enter here takes precedence. Codes found nowhere count as duty — better to set off once for nothing.",
         "data": {
           "codes_frei": "Codes meaning off",
           "codes_standby": "Codes meaning standby",

@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .api import AuthFehler, OpenAirLogApi, OpenAirLogFehler, RateLimitFehler
+from .dienstcodes import ist_simulator, kategorie_vorschlag
 from .lufthansa import LhFehler, LufthansaApi, auswerten as lh_auswerten
 from .const import (
     KAT_DIENST, KAT_FREI, KAT_SCHULUNG, KAT_STANDBY,
@@ -110,9 +111,29 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             return KAT_WBT
         if code_u in self._codes("codes_schulung"):
             return KAT_SCHULUNG
-        # Unbekannte Codes gelten als Dienst - lieber einmal zu viel heizen
-        # als den Wecker verpassen.
-        return STANDARD_KATEGORIEN.get(code_u, KAT_DIENST)
+        # Eigene Listen haben Vorrang; danach greift die mitgelieferte
+        # Lufthansa-Symbolliste. Was auch dort fehlt, gilt als Dienst -
+        # lieber einmal zu viel heizen als den Wecker verpassen.
+        return (STANDARD_KATEGORIEN.get(code_u)
+                or kategorie_vorschlag(code_u)
+                or KAT_DIENST)
+
+    @staticmethod
+    def _ist_sim(leg: dict, eigene_codes: set[str]) -> bool:
+        """Simulator? Eigene Codeliste zuerst, dann die Lufthansa-Tabelle.
+
+        Geprueft wird der Dienstcode UND das erste Wort der Flugnummer, weil
+        SIM-Schichten im Flugbuch als Fluege gefuehrt werden.
+        """
+        code = str(leg.get("code") or "").upper().strip()
+        if code and (code in eigene_codes or ist_simulator(code)):
+            return True
+        worte = str(leg.get("flugnummer") or "").split()
+        if worte:
+            erstes = worte[0].upper()
+            if erstes in eigene_codes or ist_simulator(erstes):
+                return True
+        return False
 
     @staticmethod
     def _uhr(wert: Any) -> str:
@@ -319,14 +340,19 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             #   Flug       -> Briefing vor Abflug, kurzes Debriefing danach
             #   Simulator  -> laengere Vor- UND Nachbereitung
             #   Boden      -> Groundcourse, CRM, eCRM: kein Briefing
-            if erster.get("flugnummer"):
-                art = ART_FLUG
-                vorlauf = briefing
-                nachlauf = debriefing if letzter.get("flugnummer") else timedelta(0)
-            elif str(erster.get("code") or "").upper() in codes_sim:
+            # Simulator ZUERST pruefen: SIM-Schichten stehen im Flugbuch als
+            # Fluege - mit Flugnummer, Abflug = Ankunft und einer Simulator-
+            # Kennung statt eines Flugzeugs (z.B. "TTC B748 748", EDDF->EDDF).
+            # Ohne diese Reihenfolge bekaeme eine SIM-Schicht die Briefingzeit
+            # eines Fluges.
+            if self._ist_sim(erster, codes_sim):
                 art = ART_SIM
                 vorlauf = briefing_sim
                 nachlauf = debriefing_sim
+            elif erster.get("flugnummer"):
+                art = ART_FLUG
+                vorlauf = briefing
+                nachlauf = debriefing if letzter.get("flugnummer") else timedelta(0)
             else:
                 art = ART_BODEN
                 vorlauf = timedelta(0)

@@ -36,7 +36,7 @@
       },
       "codes": {
         "title": "Dienstcodes",
-        "description": "Welche Kürzel bedeuten was? Präsenzschulungen wie Groundcourse oder CRM zählen als Dienst und lösen eine Losfahrzeit aus, Web Based Training am eigenen Rechner nicht. Nicht aufgeführte Codes gelten als Dienst — lieber einmal umsonst vorheizen.",
+        "description": "Diese Felder sind nur nötig, wenn deine Airline andere Kürzel nutzt. Für Lufthansa bringt die Integration die offizielle Symbolliste bereits mit — Simulator, Präsenzschulung, Web Based Training und freie Tage werden dann automatisch erkannt. Was du hier einträgst, hat Vorrang. Codes, die nirgends vorkommen, gelten als Dienst — lieber einmal umsonst losfahren.",
         "data": {
           "codes_frei": "Codes für frei",
           "codes_standby": "Codes für Bereitschaft",
