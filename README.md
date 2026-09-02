@@ -1,11 +1,38 @@
 # OpenAirLog für Home Assistant
 
-Bringt deinen Dienstplan und dein Flugbuch von [OpenAirLog](https://openairlog.de)
-nach Home Assistant — als Kalender, Sensoren und eigene Dashboard-Karte. Damit
-lassen sich Heizung, Kaffeemaschine oder Benachrichtigungen an deine Dienste
-koppeln, ohne den Plan abzutippen.
+**Kein Ersatz für [OpenAirLog](https://openairlog.de) — eine Brücke dorthin.**
 
-Die Integration ist **rein lesend** und schreibt nichts in dein Flugbuch zurück.
+OpenAirLog ist ein richtig starkes Flugbuch: Dienstplan, Statistiken,
+Auswertungen, sauber gemacht und kostenlos. Diese Integration baut davon
+bewusst **nichts** nach. Sie schließt nur eine einzige Lücke — die zwischen
+deinen Dienstplandaten und dem, was zuhause passieren soll.
+
+Denn dein Flugbuch weiß, wann du wiederkommst. Deine Heizung weiß es nicht.
+
+Genau dafür ist das hier gedacht: Dienste als Kalender und Sensoren in Home
+Assistant, damit Automationen daran andocken können — Heizung hochfahren, bevor
+du aus Tokio zurück bist, Kaffee nur an Tagen ohne Frühdienst, eine Nachricht
+nach Hause, wenn sich der Umlauf verschiebt.
+
+Ausgewertet, geblättert und gepflegt wird dein Flugbuch weiterhin dort, wo es
+hingehört: bei OpenAirLog. Die Integration ist **rein lesend** und schreibt
+nichts zurück.
+
+## Danke
+
+Diese Integration lebt vollständig von der Arbeit eines anderen. **Danke an den
+Entwickler von OpenAirLog** — für ein Werkzeug, das fliegendem Personal den
+Alltag leichter macht, für die Mühe, die darin steckt, und für eine offene API,
+die so etwas hier überhaupt erst möglich macht.
+
+> **Kein offizielles Projekt.** Ich bin schlicht Nutzer von OpenAirLog — nicht
+> an der Entwicklung beteiligt, in keiner Weise damit verbunden, und profitiere
+> einfach von seiner Arbeit. Diese Integration ist privat entstanden und wird
+> hier von mir gepflegt. Fragen und Fehler dazu also bitte **ins Repo hier**,
+> nicht zu OpenAirLog — der Entwickler hat damit nichts zu tun.
+>
+> Und weil der Dienst kostenlos ist: Die Integration fragt bewusst sparsam ab,
+> siehe [Serverlast](#serverlast).
 
 ## Entitäten
 

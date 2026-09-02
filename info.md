@@ -1,7 +1,15 @@
 # OpenAirLog für Home Assistant
 
-Holt deinen **Dienstplan und dein Flugbuch** von [OpenAirLog](https://openairlog.de)
-nach Home Assistant — rein lesend.
+**Kein Ersatz für [OpenAirLog](https://openairlog.de) — eine Brücke dorthin.**
+
+Dein Flugbuch weiß, wann du wiederkommst. Deine Heizung weiß es nicht. Diese
+Integration schließt genau diese Lücke: Dienste als Kalender und Sensoren in
+Home Assistant, damit Automationen daran andocken können. Ausgewertet wird dein
+Flugbuch weiterhin bei OpenAirLog — hier wird nur gelesen, nie geschrieben.
+
+**Danke an den Entwickler von OpenAirLog** für das Werkzeug und die offene API.
+Dies ist ein privates Projekt und **nicht offiziell** — Fragen dazu bitte ins
+Repo, nicht an OpenAirLog.
 
 ## In drei Schritten
 
