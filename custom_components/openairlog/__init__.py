@@ -13,7 +13,14 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_integration
 
 from .api import OpenAirLogApi
-from .const import CONF_API_KEY, CONF_LH_ID, CONF_LH_SECRET, DOMAIN
+from .const import (
+    CONF_API_KEY,
+    CONF_CODES_WBT,
+    CONF_LH_ID,
+    CONF_LH_SECRET,
+    DOMAIN,
+    STANDARD_CODES_WBT,
+)
 from .coordinator import OpenAirLogCoordinator
 from .lufthansa import LufthansaApi
 
@@ -86,7 +93,28 @@ async def _karte_bereitstellen(hass: HomeAssistant) -> None:
         add_extra_js_url(hass, url)  # Rueckfallweg (YAML-Modus)
 
 
+def _optionen_migrieren(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Trennt Web Based Training von Praesenzschulungen - einmalig.
+
+    Frueher lagen beide unter "Schulung". Fuer eine Praesenzschulung muss man
+    aber losfahren, fuer ein WBT am eigenen Rechner nicht. Bestehende Eintraege
+    werden deshalb einmal auseinandersortiert.
+    """
+    if CONF_CODES_WBT in entry.options:
+        return
+    optionen = dict(entry.options)
+    schulung = list(optionen.get("codes_schulung") or [])
+    bekannt = {c.upper() for c in STANDARD_CODES_WBT}
+    wbt = [c for c in schulung if str(c).upper() in bekannt]
+    optionen[CONF_CODES_WBT] = wbt or list(STANDARD_CODES_WBT)
+    optionen["codes_schulung"] = [c for c in schulung if c not in wbt]
+    _LOGGER.debug("Schulungscodes aufgeteilt: WBT=%s, Praesenz=%s",
+                  optionen[CONF_CODES_WBT], optionen["codes_schulung"])
+    hass.config_entries.async_update_entry(entry, options=optionen)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    _optionen_migrieren(hass, entry)
     await _karte_bereitstellen(hass)
     session = async_get_clientsession(hass)
     api = OpenAirLogApi(session, entry.data[CONF_API_KEY])

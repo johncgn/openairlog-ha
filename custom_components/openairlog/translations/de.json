@@ -36,14 +36,15 @@
       },
       "codes": {
         "title": "Dienstcodes",
-        "description": "Kommagetrennt eintragen. Alles, was hier nicht steht, gilt als Dienst — lieber einmal zu viel vorheizen als den Dienst verpassen.",
+        "description": "Welche Kürzel bedeuten was? Präsenzschulungen wie Groundcourse oder CRM zählen als Dienst und lösen eine Losfahrzeit aus, Web Based Training am eigenen Rechner nicht. Nicht aufgeführte Codes gelten als Dienst — lieber einmal umsonst vorheizen.",
         "data": {
           "codes_frei": "Codes für frei",
           "codes_standby": "Codes für Bereitschaft",
-          "codes_schulung": "Codes für Schulung",
+          "codes_schulung": "Codes für Präsenzschulungen (Anfahrt nötig)",
           "tage_voraus": "Vorschau (Tage)",
           "tage_rueckblick": "Rückblick (Tage)",
-          "codes_simulator": "Codes für Simulator (Komma getrennt)"
+          "codes_simulator": "Codes für Simulator (Komma getrennt)",
+          "codes_wbt": "Codes für Web Based Training (von zuhause)"
         }
       },
       "lufthansa": {

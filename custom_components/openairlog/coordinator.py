@@ -25,6 +25,9 @@ from .const import (
     STANDARD_CODES_SIM,
     STANDARD_DEBRIEFING_SIM_MIN,
     STANDARD_PUFFER_MIN,
+    CONF_CODES_WBT,
+    KAT_WBT,
+    STANDARD_CODES_WBT,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -74,6 +77,8 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             return KAT_FREI
         if code in set(self.optionen.get("codes_standby") or []):
             return KAT_STANDBY
+        if code in set(self.optionen.get(CONF_CODES_WBT) or STANDARD_CODES_WBT):
+            return KAT_WBT
         if code in set(self.optionen.get("codes_schulung") or []):
             return KAT_SCHULUNG
         # Unbekannte Codes gelten als Dienst - lieber einmal zu viel heizen
@@ -233,8 +238,10 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         basis = (o.get("basis_flughafen")
                  or (self.profil or {}).get("base_airport") or "").upper()
 
+        # Praesenzschulungen zaehlen mit - auch dafuer muss man losfahren.
+        # Web Based Training bleibt draussen: das laeuft am Rechner zuhause.
         arbeit = [d for d in dienste
-                  if d["kategorie"] in (KAT_DIENST, KAT_STANDBY)
+                  if d["kategorie"] in (KAT_DIENST, KAT_STANDBY, KAT_SCHULUNG)
                   and d["beginn"] and d["ende"]]
         arbeit.sort(key=lambda d: d["beginn"])
 

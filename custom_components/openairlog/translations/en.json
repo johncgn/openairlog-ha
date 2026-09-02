@@ -36,14 +36,15 @@
       },
       "codes": {
         "title": "Duty codes",
-        "description": "Comma separated. Anything not listed counts as duty.",
+        "description": "What do the abbreviations mean? On-site training such as ground course or CRM counts as duty and triggers a departure time; web based training at your own computer does not. Codes not listed count as duty — better to heat once too often.",
         "data": {
           "codes_frei": "Codes meaning off",
           "codes_standby": "Codes meaning standby",
-          "codes_schulung": "Codes meaning training",
+          "codes_schulung": "Codes for on-site training (requires travel)",
           "tage_voraus": "Look ahead (days)",
           "tage_rueckblick": "Look back (days)",
-          "codes_simulator": "Codes for simulator (comma separated)"
+          "codes_simulator": "Codes for simulator (comma separated)",
+          "codes_wbt": "Codes for web based training (from home)"
         }
       },
       "lufthansa": {

@@ -18,6 +18,7 @@ CONF_BRIEFING_SIM_MIN = "briefing_sim_minuten"
 CONF_DEBRIEFING_SIM_MIN = "debriefing_sim_minuten"
 CONF_PUFFER_MIN = "puffer_minuten"
 CONF_CODES_SIM = "codes_simulator"
+CONF_CODES_WBT = "codes_wbt"
 CONF_TURNAROUND_MIN = "turnaround_minuten"
 CONF_BASIS = "basis_flughafen"
 CONF_LH_ID = "lh_client_id"
@@ -56,11 +57,13 @@ STANDARD_LH_FENSTER_H = 24
 # --- Kategorien -----------------------------------------------------------
 # "dienst"   = Anwesenheit an der Basis noetig -> loest Anfahrt/Heizung aus
 # "standby"  = Bereitschaft, kann zum Dienst werden
-# "schulung" = Termin, oft von zuhause (kein Weg zur Basis)
+# "schulung" = Praesenztermin (Groundcourse, CRM) -> Weg zur Basis noetig
+# "wbt"      = Web Based Training von zuhause -> KEIN Weg, kein Puffer
 # "frei"     = kein Dienst
 KAT_DIENST = "dienst"
 KAT_STANDBY = "standby"
 KAT_SCHULUNG = "schulung"
+KAT_WBT = "wbt"
 KAT_FREI = "frei"
 
 # Ein Eintrag OHNE duty_code, aber MIT Flugnummer, ist ein echter Flug.
@@ -79,10 +82,10 @@ STANDARD_KATEGORIEN: dict[str, str] = {
     "DT_GC": KAT_DIENST,    # Dienst am Boden
     "DTMFF_V": KAT_DIENST,
     "SB_S_LR_FF": KAT_STANDBY,
-    "WBT_RNP": KAT_SCHULUNG,
-    "FCCRM": KAT_SCHULUNG,
+    "WBT_RNP": KAT_WBT,     # Web Based Training - von zuhause
+    "AVSEC": KAT_WBT,
+    "FCCRM": KAT_SCHULUNG,  # Praesenzschulung - Anfahrt noetig
     "EMCRM": KAT_SCHULUNG,
-    "AVSEC": KAT_SCHULUNG,
 }
 
 # --- Dienstarten ----------------------------------------------------------
@@ -94,3 +97,7 @@ ART_BODEN = "boden"        # Groundcourse, CRM, eCRM: kein Briefing, nur Puffer
 
 # Vorschlag fuer Simulator-Kuerzel - in den Optionen anpassbar.
 STANDARD_CODES_SIM = ["SIM", "OPC", "LPC", "LOFT", "FFS", "SIM_FFS"]
+
+# Web Based Training laeuft am eigenen Rechner - kein Weg, kein Puffer.
+# Alles, was Praesenz verlangt (Groundcourse, CRM), gehoert NICHT hierher.
+STANDARD_CODES_WBT = ["WBT_RNP", "AVSEC", "WBT", "ELEARNING"]

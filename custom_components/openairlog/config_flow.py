@@ -30,6 +30,8 @@ from .const import (
     STANDARD_CODES_SIM,
     STANDARD_DEBRIEFING_SIM_MIN,
     STANDARD_PUFFER_MIN,
+    CONF_CODES_WBT,
+    STANDARD_CODES_WBT,
 )
 
 
@@ -121,7 +123,7 @@ class OpenAirLogOptionsFlow(OptionsFlow):
         if user_input is not None:
             daten = {**self._daten, **user_input}
             for feld in ("codes_frei", "codes_standby", "codes_schulung",
-                         CONF_CODES_SIM):
+                         CONF_CODES_SIM, CONF_CODES_WBT):
                 daten[feld] = _liste(daten.get(feld))
             for feld in (CONF_BRIEFING_MIN, CONF_DEBRIEFING_MIN,
                          CONF_BRIEFING_SIM_MIN, CONF_DEBRIEFING_SIM_MIN,
@@ -143,6 +145,8 @@ class OpenAirLogOptionsFlow(OptionsFlow):
                 _liste(o.get("codes_schulung")) or _liste(_codes(KAT_SCHULUNG)))): str,
             vol.Optional(CONF_CODES_SIM, default=", ".join(
                 _liste(o.get(CONF_CODES_SIM)) or STANDARD_CODES_SIM)): str,
+            vol.Optional(CONF_CODES_WBT, default=", ".join(
+                _liste(o.get(CONF_CODES_WBT)) or STANDARD_CODES_WBT)): str,
             vol.Optional(CONF_TAGE_VORAUS,
                          default=o.get(CONF_TAGE_VORAUS, STANDARD_TAGE_VORAUS)): vol.Coerce(int),
             vol.Optional(CONF_TAGE_RUECK,
