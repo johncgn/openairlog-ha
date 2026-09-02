@@ -14,6 +14,17 @@ from .const import (
     KAT_DIENST, KAT_FREI, KAT_SCHULUNG, KAT_STANDBY,
     STANDARD_BRIEFING_MIN, STANDARD_DEBRIEFING_MIN, STANDARD_KATEGORIEN,
     STANDARD_TURNAROUND_MIN, STATISTIK_JEDER_NTE, UPDATE_INTERVALL,
+    ART_BODEN,
+    ART_FLUG,
+    ART_SIM,
+    CONF_BRIEFING_SIM_MIN,
+    CONF_CODES_SIM,
+    CONF_DEBRIEFING_SIM_MIN,
+    CONF_PUFFER_MIN,
+    STANDARD_BRIEFING_SIM_MIN,
+    STANDARD_CODES_SIM,
+    STANDARD_DEBRIEFING_SIM_MIN,
+    STANDARD_PUFFER_MIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -212,6 +223,12 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         o = self.optionen
         briefing = timedelta(minutes=int(o.get("briefing_minuten", STANDARD_BRIEFING_MIN)))
         debriefing = timedelta(minutes=int(o.get("debriefing_minuten", STANDARD_DEBRIEFING_MIN)))
+        briefing_sim = timedelta(
+            minutes=int(o.get(CONF_BRIEFING_SIM_MIN, STANDARD_BRIEFING_SIM_MIN)))
+        debriefing_sim = timedelta(
+            minutes=int(o.get(CONF_DEBRIEFING_SIM_MIN, STANDARD_DEBRIEFING_SIM_MIN)))
+        puffer = timedelta(minutes=int(o.get(CONF_PUFFER_MIN, STANDARD_PUFFER_MIN)))
+        codes_sim = {str(c).upper() for c in (o.get(CONF_CODES_SIM) or STANDARD_CODES_SIM)}
         turnaround = timedelta(minutes=int(o.get("turnaround_minuten", STANDARD_TURNAROUND_MIN)))
         basis = (o.get("basis_flughafen")
                  or (self.profil or {}).get("base_airport") or "").upper()
@@ -243,12 +260,31 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         for u in umlaeufe:
             legs = u["legs"]
             erster, letzter = legs[0], legs[-1]
-            # Briefing gilt nur vor echten Fluegen. Ein Bodendienst, Simulator
-            # oder eine Bereitschaft beginnt zur angesetzten Zeit.
-            vorlauf = briefing if erster.get("flugnummer") else timedelta(0)
-            nachlauf = debriefing if letzter.get("flugnummer") else timedelta(0)
+            # Wie frueh man da sein muss, haengt von der Art des Dienstes ab:
+            #   Flug       -> Briefing vor Abflug, kurzes Debriefing danach
+            #   Simulator  -> laengere Vor- UND Nachbereitung
+            #   Boden      -> Groundcourse, CRM, eCRM: kein Briefing
+            if erster.get("flugnummer"):
+                art = ART_FLUG
+                vorlauf = briefing
+                nachlauf = debriefing if letzter.get("flugnummer") else timedelta(0)
+            elif str(erster.get("code") or "").upper() in codes_sim:
+                art = ART_SIM
+                vorlauf = briefing_sim
+                nachlauf = debriefing_sim
+            else:
+                art = ART_BODEN
+                vorlauf = timedelta(0)
+                nachlauf = timedelta(0)
+
+            beginn = erster["beginn"] - vorlauf
             fertig.append({
-                "beginn": erster["beginn"] - vorlauf,
+                "art": art,
+                "beginn": beginn,
+                # Der Puffer zaehlt NICHT zum Dienst - er sagt nur, wann man
+                # vor Ort sein moechte, und verschiebt damit die Losfahrzeit.
+                "vor_ort": beginn - puffer,
+                "puffer_minuten": int(puffer.total_seconds() // 60),
                 "briefing_minuten": int(vorlauf.total_seconds() // 60),
                 "ende": letzter["ende"] + nachlauf,
                 "abflug": erster["beginn"],

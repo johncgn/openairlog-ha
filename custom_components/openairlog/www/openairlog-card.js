@@ -77,6 +77,24 @@ class OpenAirLogCard extends HTMLElement {
 
     const kopf = imDienst ? "Im Dienst" : (legs.length > 1 ? "Nächster Umlauf" : "Nächster Dienst");
 
+    // Zeitmarken vor dem Dienst. Was zaehlt, haengt von der Art ab:
+    //   Flug      -> Briefing und Abflug
+    //   Simulator -> Briefing (Vor- und Nachbereitung sind laenger)
+    //   Boden     -> nur, wann man da sein muss (kein Briefing)
+    const art = a.art || (legs.length && legs[0].flug ? "flug" : "boden");
+    const puffer = Number(a.puffer_minuten || 0);
+    const vorOrt = d(a.vor_ort);
+    const briefing = d(a.briefing) || beginn;
+    const abflug = d(a.abflug);
+    const marken = [];
+    if (puffer > 0 && vorOrt) marken.push(`Vor Ort <b>${hhmm(vorOrt)}</b>`);
+    if (art === "boden") {
+      marken.push(`Beginn <b>${hhmm(briefing)}</b>`);
+    } else {
+      marken.push(`Briefing <b>${hhmm(briefing)}</b>`);
+      if (art === "flug" && abflug) marken.push(`Abflug <b>${hhmm(abflug)}</b>`);
+    }
+
     // Der Losfahren-Sensor wechselt seine Bedeutung: vor dem Dienst enthaelt er
     // die Anfahrt, waehrenddessen die Heimkehr. Das Attribut "richtung" sagt,
     // was gerade drinsteht - sonst stuende im Fuss "losfahren 19:00".
@@ -124,7 +142,9 @@ class OpenAirLogCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <ha-card>
         <div class="kopf">
-          <ha-icon icon="${imDienst ? "mdi:airplane-takeoff" : "mdi:airplane-clock"}"></ha-icon>
+          <ha-icon icon="${imDienst ? "mdi:airplane-takeoff"
+            : (art === "simulator" ? "mdi:monitor-dashboard"
+            : (art === "boden" ? "mdi:school-outline" : "mdi:airplane-clock"))}"></ha-icon>
           <span class="titel">${kopf}</span>
           <span class="badge ${stufe}">${badge}</span>
         </div>
@@ -132,6 +152,11 @@ class OpenAirLogCard extends HTMLElement {
         <div class="zeit">
           <span class="gross">${tag(beginn)} ${hhmm(beginn)}</span>
           <span class="bis">– ${mehrtaegig ? tag(endeD) + " " : ""}${hhmm(endeD)}</span>
+        </div>
+
+        <div class="marken">
+          ${marken.join(" · ")}
+          ${puffer > 0 ? `<span class="puffer">inkl. ${puffer} min Puffer</span>` : ""}
         </div>
 
         <div class="unter">
@@ -171,6 +196,9 @@ class OpenAirLogCard extends HTMLElement {
       .zeit { display:flex; align-items:baseline; gap:8px; }
       .gross { font-size:24px; font-weight:600; }
       .bis { color: var(--secondary-text-color); }
+      .marken { margin-top:6px; font-size:13px; color: var(--secondary-text-color); }
+      .marken b { color: var(--primary-text-color); font-weight:600; }
+      .puffer { margin-left:8px; font-size:11px; opacity:.65; white-space:nowrap; }
       .unter { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
       .chip { font-size:12px; padding:2px 8px; border-radius:8px;
               background: var(--secondary-background-color); color: var(--secondary-text-color); }

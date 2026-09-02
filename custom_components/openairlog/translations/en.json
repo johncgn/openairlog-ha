@@ -21,14 +21,17 @@
     "step": {
       "init": {
         "title": "Times and commute",
-        "description": "Briefing counts as duty and applies only before actual flights. The trip threshold defines how much ground time at base starts a new duty.",
+        "description": "Briefing and debriefing apply to flights. The simulator has its own timings; ground duties and training (ground course, CRM) have no briefing at all. The buffer is not part of the duty — it only says how early you want to arrive, and applies to every kind of duty. Departure time = arrival time minus the commute.",
         "data": {
           "briefing_minuten": "Briefing before departure",
           "debriefing_minuten": "Debriefing after arrival",
           "anfahrt_minuten": "Commute home to base",
           "heimweg_minuten": "Commute base to home",
           "turnaround_minuten": "Trip threshold at base",
-          "basis_flughafen": "Base airport (empty = from profile)"
+          "basis_flughafen": "Base airport (empty = from profile)",
+          "briefing_sim_minuten": "Simulator: briefing before",
+          "debriefing_sim_minuten": "Simulator: debriefing after",
+          "puffer_minuten": "Personal buffer (how early do you want to be there?)"
         }
       },
       "codes": {
@@ -39,7 +42,8 @@
           "codes_standby": "Codes meaning standby",
           "codes_schulung": "Codes meaning training",
           "tage_voraus": "Look ahead (days)",
-          "tage_rueckblick": "Look back (days)"
+          "tage_rueckblick": "Look back (days)",
+          "codes_simulator": "Codes for simulator (comma separated)"
         }
       },
       "lufthansa": {

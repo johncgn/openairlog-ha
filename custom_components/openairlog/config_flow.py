@@ -22,6 +22,14 @@ from .const import (
     STANDARD_BRIEFING_MIN, STANDARD_DEBRIEFING_MIN, STANDARD_KATEGORIEN,
     STANDARD_LH_FENSTER_H, STANDARD_TAGE_RUECK, STANDARD_TAGE_VORAUS,
     STANDARD_TURNAROUND_MIN,
+    CONF_BRIEFING_SIM_MIN,
+    CONF_CODES_SIM,
+    CONF_DEBRIEFING_SIM_MIN,
+    CONF_PUFFER_MIN,
+    STANDARD_BRIEFING_SIM_MIN,
+    STANDARD_CODES_SIM,
+    STANDARD_DEBRIEFING_SIM_MIN,
+    STANDARD_PUFFER_MIN,
 )
 
 
@@ -70,7 +78,7 @@ class OpenAirLogConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class OpenAirLogOptionsFlow(OptionsFlow):
-    """Zwei Schritte: erst Zeiten und Wege, dann die Dienstcodes."""
+    """Drei Schritte: Zeiten und Wege, Dienstcodes, Lufthansa-Zugang."""
 
     def __init__(self, entry: ConfigEntry) -> None:
         self.entry = entry
@@ -94,6 +102,9 @@ class OpenAirLogOptionsFlow(OptionsFlow):
         for feld, standard, maximum in (
             (CONF_BRIEFING_MIN, STANDARD_BRIEFING_MIN, 300),
             (CONF_DEBRIEFING_MIN, STANDARD_DEBRIEFING_MIN, 300),
+            (CONF_BRIEFING_SIM_MIN, STANDARD_BRIEFING_SIM_MIN, 300),
+            (CONF_DEBRIEFING_SIM_MIN, STANDARD_DEBRIEFING_SIM_MIN, 300),
+            (CONF_PUFFER_MIN, STANDARD_PUFFER_MIN, 180),
             (CONF_ANFAHRT_MIN, 0, 600),
             (CONF_HEIMWEG_MIN, 0, 600),
             (CONF_TURNAROUND_MIN, STANDARD_TURNAROUND_MIN, 1440),
@@ -109,9 +120,12 @@ class OpenAirLogOptionsFlow(OptionsFlow):
         """Schritt 2: Bedeutung der Dienstcodes und Vorschauzeitraum."""
         if user_input is not None:
             daten = {**self._daten, **user_input}
-            for feld in ("codes_frei", "codes_standby", "codes_schulung"):
+            for feld in ("codes_frei", "codes_standby", "codes_schulung",
+                         CONF_CODES_SIM):
                 daten[feld] = _liste(daten.get(feld))
-            for feld in (CONF_BRIEFING_MIN, CONF_DEBRIEFING_MIN, CONF_ANFAHRT_MIN,
+            for feld in (CONF_BRIEFING_MIN, CONF_DEBRIEFING_MIN,
+                         CONF_BRIEFING_SIM_MIN, CONF_DEBRIEFING_SIM_MIN,
+                         CONF_PUFFER_MIN, CONF_ANFAHRT_MIN,
                          CONF_HEIMWEG_MIN, CONF_TURNAROUND_MIN, CONF_TAGE_VORAUS,
                          CONF_TAGE_RUECK):
                 if feld in daten:
@@ -127,6 +141,8 @@ class OpenAirLogOptionsFlow(OptionsFlow):
                 _liste(o.get("codes_standby")) or _liste(_codes(KAT_STANDBY)))): str,
             vol.Optional("codes_schulung", default=", ".join(
                 _liste(o.get("codes_schulung")) or _liste(_codes(KAT_SCHULUNG)))): str,
+            vol.Optional(CONF_CODES_SIM, default=", ".join(
+                _liste(o.get(CONF_CODES_SIM)) or STANDARD_CODES_SIM)): str,
             vol.Optional(CONF_TAGE_VORAUS,
                          default=o.get(CONF_TAGE_VORAUS, STANDARD_TAGE_VORAUS)): vol.Coerce(int),
             vol.Optional(CONF_TAGE_RUECK,

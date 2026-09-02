@@ -21,14 +21,17 @@
     "step": {
       "init": {
         "title": "Zeiten und Wege",
-        "description": "Briefing zählt zum Dienst und gilt nur vor echten Flügen. Die Umlauf-Grenze bestimmt, ab welcher Standzeit an der Basis ein neuer Dienst beginnt.",
+        "description": "Briefing und Debriefing gelten für Flüge. Der Simulator hat eigene Zeiten, Bodendienste und Schulungen (Groundcourse, CRM) haben gar kein Briefing. Der Puffer zählt nicht zum Dienst — er sagt nur, wie früh du vor Ort sein möchtest, und gilt für alle Dienstarten. Losfahrzeit = Vor-Ort-Zeit minus Weg zur Basis.",
         "data": {
           "briefing_minuten": "Briefing vor Abflug",
           "debriefing_minuten": "Debriefing nach Ankunft",
           "anfahrt_minuten": "Weg von zuhause zur Basis",
           "heimweg_minuten": "Weg von der Basis nach Hause",
           "turnaround_minuten": "Umlauf-Grenze an der Basis",
-          "basis_flughafen": "Basis-Flughafen (leer = aus dem Profil)"
+          "basis_flughafen": "Basis-Flughafen (leer = aus dem Profil)",
+          "briefing_sim_minuten": "Simulator: Briefing davor",
+          "debriefing_sim_minuten": "Simulator: Debriefing danach",
+          "puffer_minuten": "Persönlicher Puffer (wie früh vor Ort sein?)"
         }
       },
       "codes": {
@@ -39,7 +42,8 @@
           "codes_standby": "Codes für Bereitschaft",
           "codes_schulung": "Codes für Schulung",
           "tage_voraus": "Vorschau (Tage)",
-          "tage_rueckblick": "Rückblick (Tage)"
+          "tage_rueckblick": "Rückblick (Tage)",
+          "codes_simulator": "Codes für Simulator (Komma getrennt)"
         }
       },
       "lufthansa": {

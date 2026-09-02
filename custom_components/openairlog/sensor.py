@@ -75,6 +75,11 @@ class DienstZeitSensor(OpenAirLogEntity, SensorEntity):
             "abflug": u.get("abflug"),
             "ankunft": u.get("ankunft"),
             "datum": u.get("datum"),
+            "art": u.get("art"),
+            "briefing": u.get("beginn"),
+            "vor_ort": u.get("vor_ort"),
+            "briefing_minuten": u.get("briefing_minuten"),
+            "puffer_minuten": u.get("puffer_minuten"),
             "legs": [
                 {
                     "flug": l.get("flugnummer") or l.get("code"),
@@ -119,7 +124,9 @@ class NaechsterSchrittSensor(OpenAirLogEntity, SensorEntity):
         if (u := daten.get("aktuell")):
             return u["ende"] + self._heimweg
         if (u := daten.get("naechster")):
-            return u["beginn"] - self._anfahrt
+            # Nicht der Dienstbeginn zaehlt, sondern wann man vor Ort sein
+            # moechte - also inklusive persoenlichem Puffer.
+            return (u.get("vor_ort") or u["beginn"]) - self._anfahrt
         return None
 
     @property

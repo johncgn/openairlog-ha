@@ -14,6 +14,10 @@ CONF_TAGE_VORAUS = "tage_voraus"
 CONF_TAGE_RUECK = "tage_rueckblick"
 CONF_BRIEFING_MIN = "briefing_minuten"
 CONF_DEBRIEFING_MIN = "debriefing_minuten"
+CONF_BRIEFING_SIM_MIN = "briefing_sim_minuten"
+CONF_DEBRIEFING_SIM_MIN = "debriefing_sim_minuten"
+CONF_PUFFER_MIN = "puffer_minuten"
+CONF_CODES_SIM = "codes_simulator"
 CONF_TURNAROUND_MIN = "turnaround_minuten"
 CONF_BASIS = "basis_flughafen"
 CONF_LH_ID = "lh_client_id"
@@ -34,6 +38,13 @@ STANDARD_TAGE_RUECK = 7
 # Briefing vor Abflug - je nach Flotte unterschiedlich, deshalb einstellbar.
 STANDARD_BRIEFING_MIN = 0
 STANDARD_DEBRIEFING_MIN = 30
+# Simulator laeuft anders als ein Flug: Vor- UND Nachbereitung sind laenger.
+STANDARD_BRIEFING_SIM_MIN = 60
+STANDARD_DEBRIEFING_SIM_MIN = 60
+# Persoenlicher Sicherheitspuffer: So lange VOR dem Briefing moechte man da
+# sein. Zaehlt nicht zum Dienst, verschiebt aber die Losfahrzeit nach vorn -
+# und gilt auch fuer Bodendienste und Schulungen, wo es kein Briefing gibt.
+STANDARD_PUFFER_MIN = 15
 # Kehrt man zwischendurch zur Basis zurueck, gehoert der naechste Flug nur dann
 # zum selben Dienst, wenn die Standzeit darunter liegt (Kurzstrecken-Umlauf).
 STANDARD_TURNAROUND_MIN = 180
@@ -73,3 +84,13 @@ STANDARD_KATEGORIEN: dict[str, str] = {
     "EMCRM": KAT_SCHULUNG,
     "AVSEC": KAT_SCHULUNG,
 }
+
+# --- Dienstarten ----------------------------------------------------------
+# Bestimmen, welche Briefingzeiten gelten. Nicht mit den Kategorien oben
+# verwechseln: die sagen, OB man raus muss - die Art sagt, WIE FRUEH.
+ART_FLUG = "flug"          # Briefing vor Abflug, kurzes Debriefing danach
+ART_SIM = "simulator"      # laengere Vor- und Nachbereitung
+ART_BODEN = "boden"        # Groundcourse, CRM, eCRM: kein Briefing, nur Puffer
+
+# Vorschlag fuer Simulator-Kuerzel - in den Optionen anpassbar.
+STANDARD_CODES_SIM = ["SIM", "OPC", "LPC", "LOFT", "FFS", "SIM_FFS"]
