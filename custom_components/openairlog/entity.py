@@ -27,7 +27,10 @@ class OpenAirLogEntity(CoordinatorEntity[OpenAirLogCoordinator]):
             entry_type=DeviceEntryType.SERVICE,
             name="OpenAirLog",
             manufacturer="OpenAirLog",
-            model=profil.get("crew_role") or "Flugbuch",
+            # "Modell" beschreibt, WAS der Dienst ist - nicht, wer ihn nutzt.
+            # Frueher stand hier crew_role, also schlicht "pilot": eine
+            # Eigenschaft des Nutzers, an einer Stelle fuer Geraeteangaben.
+            model="Flugbuch & Dienstplan",
             configuration_url="https://openairlog.de",
         )
 
