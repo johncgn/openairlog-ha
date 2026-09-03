@@ -31,6 +31,8 @@ from .const import (
     CONF_CODES_WBT,
     KAT_WBT,
     STANDARD_CODES_WBT,
+    CONF_LH_TABELLE,
+    STANDARD_LH_TABELLE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -96,6 +98,11 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             return {str(c).upper() for c in (self.optionen.get(schluessel) or [])}
         return {str(c).upper() for c in (standard or [])}
 
+    @property
+    def _lh_tabelle(self) -> bool:
+        """Soll die mitgelieferte Lufthansa-Symbolliste greifen?"""
+        return bool(self.optionen.get(CONF_LH_TABELLE, STANDARD_LH_TABELLE))
+
     def _kategorie(self, eintrag: dict) -> str:
         """Ordnet einen Eintrag einer Kategorie zu."""
         code = eintrag.get("duty_code")
@@ -111,27 +118,29 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             return KAT_WBT
         if code_u in self._codes("codes_schulung"):
             return KAT_SCHULUNG
-        # Eigene Listen haben Vorrang; danach greift die mitgelieferte
-        # Lufthansa-Symbolliste. Was auch dort fehlt, gilt als Dienst -
-        # lieber einmal zu viel heizen als den Wecker verpassen.
+        # Eigene Listen haben Vorrang; danach greift - sofern eingeschaltet -
+        # die mitgelieferte Lufthansa-Symbolliste. Was auch dort fehlt, gilt
+        # als Dienst: lieber einmal zu viel heizen als den Wecker verpassen.
+        if not self._lh_tabelle:
+            return KAT_DIENST
         return (STANDARD_KATEGORIEN.get(code_u)
                 or kategorie_vorschlag(code_u)
                 or KAT_DIENST)
 
-    @staticmethod
-    def _ist_sim(leg: dict, eigene_codes: set[str]) -> bool:
+    def _ist_sim(self, leg: dict, eigene_codes: set[str]) -> bool:
         """Simulator? Eigene Codeliste zuerst, dann die Lufthansa-Tabelle.
 
         Geprueft wird der Dienstcode UND das erste Wort der Flugnummer, weil
         SIM-Schichten im Flugbuch als Fluege gefuehrt werden.
         """
+        tab = self._lh_tabelle
         code = str(leg.get("code") or "").upper().strip()
-        if code and (code in eigene_codes or ist_simulator(code)):
+        if code and (code in eigene_codes or (tab and ist_simulator(code))):
             return True
         worte = str(leg.get("flugnummer") or "").split()
         if worte:
             erstes = worte[0].upper()
-            if erstes in eigene_codes or ist_simulator(erstes):
+            if erstes in eigene_codes or (tab and ist_simulator(erstes)):
                 return True
         return False
 

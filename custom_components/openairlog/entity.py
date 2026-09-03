@@ -1,7 +1,7 @@
 """Gemeinsame Basis aller OpenAirLog-Entitaeten."""
 from __future__ import annotations
 
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -22,6 +22,9 @@ class OpenAirLogEntity(CoordinatorEntity[OpenAirLogCoordinator]):
         self._attr_unique_id = f"{profil.get('id', 'oal')}_{schluessel}"
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, str(profil.get("id", "oal")))},
+            # Hier haengt keine Hardware, sondern ein Webdienst. Ohne entry_type
+            # fuehrt HA den Eintrag unter "Geraete" - das ist irrefuehrend.
+            entry_type=DeviceEntryType.SERVICE,
             name="OpenAirLog",
             manufacturer="OpenAirLog",
             model=profil.get("crew_role") or "Flugbuch",

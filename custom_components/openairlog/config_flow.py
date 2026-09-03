@@ -9,6 +9,7 @@ from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
+    BooleanSelector,
     NumberSelector, NumberSelectorConfig, NumberSelectorMode,
     TextSelector, TextSelectorConfig, TextSelectorType,
 )
@@ -32,6 +33,8 @@ from .const import (
     STANDARD_PUFFER_MIN,
     CONF_CODES_WBT,
     STANDARD_CODES_WBT,
+    CONF_LH_TABELLE,
+    STANDARD_LH_TABELLE,
 )
 
 
@@ -130,6 +133,7 @@ class OpenAirLogOptionsFlow(OptionsFlow):
             for feld in ("codes_frei", "codes_standby", "codes_schulung",
                          CONF_CODES_SIM, CONF_CODES_WBT):
                 daten[feld] = _liste(daten.get(feld))
+            daten[CONF_LH_TABELLE] = bool(daten.get(CONF_LH_TABELLE, STANDARD_LH_TABELLE))
             for feld in (CONF_BRIEFING_MIN, CONF_DEBRIEFING_MIN,
                          CONF_BRIEFING_SIM_MIN, CONF_DEBRIEFING_SIM_MIN,
                          CONF_PUFFER_MIN, CONF_ANFAHRT_MIN,
@@ -146,6 +150,8 @@ class OpenAirLogOptionsFlow(OptionsFlow):
 
         o = self.entry.options
         schema = vol.Schema({
+            vol.Required(CONF_LH_TABELLE,
+                         default=o.get(CONF_LH_TABELLE, STANDARD_LH_TABELLE)): BooleanSelector(),
             vol.Optional("codes_frei", default=", ".join(
                 _liste(o.get("codes_frei")) or _liste(_codes(KAT_FREI)))): str,
             vol.Optional("codes_standby", default=", ".join(

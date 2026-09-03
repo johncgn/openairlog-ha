@@ -36,7 +36,7 @@
       },
       "codes": {
         "title": "Dienstcodes",
-        "description": "Diese Felder sind nur nötig, wenn deine Airline andere Kürzel nutzt. Für Lufthansa bringt die Integration die offizielle Symbolliste bereits mit — Simulator, Präsenzschulung, Web Based Training und freie Tage werden dann automatisch erkannt. Was du hier einträgst, hat Vorrang. Codes, die nirgends vorkommen, gelten als Dienst — lieber einmal umsonst losfahren.",
+        "description": "Die Integration bringt die offizielle Lufthansa-Symbolliste mit — rund 600 Kürzel für Simulator, Präsenzschulung, Web Based Training und freie Tage, die dann automatisch erkannt werden. Bei einer anderen Airline das Häkchen entfernen und eigene Kürzel eintragen. Was du unten einträgst, hat immer Vorrang vor der Liste. Nicht zugeordnete Codes gelten als Dienst — lieber einmal umsonst losfahren.",
         "data": {
           "codes_frei": "Codes für frei",
           "codes_standby": "Codes für Bereitschaft",
@@ -44,7 +44,8 @@
           "tage_voraus": "Vorschau (Tage)",
           "tage_rueckblick": "Rückblick (Tage)",
           "codes_simulator": "Codes für Simulator (Komma getrennt)",
-          "codes_wbt": "Codes für Web Based Training (von zuhause)"
+          "codes_wbt": "Codes für Web Based Training (von zuhause)",
+          "lufthansa_tabelle": "Lufthansa-Symbolliste verwenden"
         }
       },
       "lufthansa": {

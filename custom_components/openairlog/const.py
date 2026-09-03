@@ -19,6 +19,7 @@ CONF_DEBRIEFING_SIM_MIN = "debriefing_sim_minuten"
 CONF_PUFFER_MIN = "puffer_minuten"
 CONF_CODES_SIM = "codes_simulator"
 CONF_CODES_WBT = "codes_wbt"
+CONF_LH_TABELLE = "lufthansa_tabelle"
 CONF_TURNAROUND_MIN = "turnaround_minuten"
 CONF_BASIS = "basis_flughafen"
 CONF_LH_ID = "lh_client_id"
@@ -100,4 +101,8 @@ STANDARD_CODES_SIM = ["SIM", "OPC", "LPC", "LOFT", "FFS", "SIM_FFS"]
 
 # Web Based Training laeuft am eigenen Rechner - kein Weg, kein Puffer.
 # Alles, was Praesenz verlangt (Groundcourse, CRM), gehoert NICHT hierher.
+# Die mitgelieferte Lufthansa-Symbolliste standardmaessig nutzen. Wer bei einer
+# anderen Airline fliegt, schaltet sie ab und traegt eigene Codes ein.
+STANDARD_LH_TABELLE = True
+
 STANDARD_CODES_WBT = ["WBT_RNP", "AVSEC", "WBT", "ELEARNING"]

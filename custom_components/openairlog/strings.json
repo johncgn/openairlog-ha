@@ -36,7 +36,7 @@
       },
       "codes": {
         "title": "Duty codes",
-        "description": "These fields are only needed if your airline uses different codes. For Lufthansa the integration already ships the official symbol list — simulator, on-site training, web based training and days off are recognised automatically. Whatever you enter here takes precedence. Codes found nowhere count as duty — better to set off once for nothing.",
+        "description": "The integration ships the official Lufthansa symbol list — around 600 codes for simulator, on-site training, web based training and days off, recognised automatically. For another airline, untick this and enter your own codes. Whatever you enter below always takes precedence over the list. Codes found nowhere count as duty — better to set off once for nothing.",
         "data": {
           "codes_frei": "Codes meaning off",
           "codes_standby": "Codes meaning standby",
@@ -44,7 +44,8 @@
           "tage_voraus": "Look ahead (days)",
           "tage_rueckblick": "Look back (days)",
           "codes_simulator": "Codes for simulator (comma separated)",
-          "codes_wbt": "Codes for web based training (from home)"
+          "codes_wbt": "Codes for web based training (from home)",
+          "lufthansa_tabelle": "Use Lufthansa symbol list"
         }
       },
       "lufthansa": {
