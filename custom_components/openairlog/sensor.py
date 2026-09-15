@@ -85,6 +85,10 @@ class DienstZeitSensor(OpenAirLogEntity, SensorEntity):
             "vor_ort": u.get("vor_ort"),
             "briefing_minuten": u.get("briefing_minuten"),
             "puffer_minuten": u.get("puffer_minuten"),
+            "ziel_ort": u.get("ziel_ort"),
+            "ziel_flughafen": u.get("ziel_flughafen"),
+            "ziel_land": u.get("ziel_land"),
+            "rufzeichen": u.get("rufzeichen"),
             "legs": [
                 {
                     "flug": l.get("flugnummer") or l.get("code"),

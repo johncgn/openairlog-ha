@@ -88,7 +88,9 @@ class OpenAirLogCard extends HTMLElement {
     const legs = Array.isArray(a.legs) ? a.legs : [];
     const mehrtaegig = a.mehrtaegig;
 
-    const kopf = imDienst ? "Im Dienst" : (legs.length > 1 ? "Nächster Umlauf" : "Nächster Dienst");
+    let kopf = imDienst ? "Im Dienst" : (legs.length > 1 ? "Nächster Umlauf" : "Nächster Dienst");
+    // Zielort im Klartext, sofern bekannt: "Nächster Umlauf · Tokyo"
+    if (a.ziel_ort) kopf += ` · ${a.ziel_ort}`;
 
     // Zeitmarken vor dem Dienst. Was zaehlt, haengt von der Art ab:
     //   Flug      -> Briefing und Abflug

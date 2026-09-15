@@ -11,6 +11,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from homeassistant.util import dt as dt_util
 
 from .api import AuthFehler, OpenAirLogApi, OpenAirLogFehler, RateLimitFehler
+from .adsbdb import AdsbdbApi
 from .dienstcodes import ist_simulator, kategorie_vorschlag
 from .lufthansa import LhFehler, LufthansaApi, auswerten as lh_auswerten
 from .const import (
@@ -72,7 +73,8 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, api: OpenAirLogApi,
                  optionen: dict[str, Any],
                  lh: LufthansaApi | None = None,
-                 config_entry: ConfigEntry | None = None) -> None:
+                 config_entry: ConfigEntry | None = None,
+                 adsbdb: AdsbdbApi | None = None) -> None:
         kwargs: dict[str, Any] = {
             "name": "OpenAirLog",
             "update_interval": UPDATE_INTERVALL,
@@ -86,6 +88,7 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             super().__init__(hass, _LOGGER, **kwargs)
         self.api = api
         self.lh = lh
+        self.adsbdb = adsbdb
         self.optionen = optionen
         self.profil: dict = {}
         self._statistik: dict = {}
@@ -238,6 +241,11 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
                         if u["beginn"] <= jetzt <= u["ende"]), None)
         naechster = next((u for u in umlaeufe if u["beginn"] > jetzt), None)
 
+        # Klarnamen der Flughaefen - nur fuer den laufenden und den naechsten
+        # Umlauf, nicht fuer alle 60 Tage. Ergebnisse sind gespeichert.
+        for u in (aktuell, naechster):
+            await self._orte_anreichern(u)
+
         live = await self._lh_anreichern(aktuell, naechster, jetzt)
 
         return {
@@ -251,6 +259,37 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         }
 
     # -------------------------------------------------------- Lufthansa
+    async def _orte_anreichern(self, umlauf: dict | None) -> None:
+        """Ergaenzt Klartext-Orte zu den Flughaefen eines Umlaufs.
+
+        Das Ziel eines Umlaufs ist NICHT der letzte Halt (das ist die Basis),
+        sondern der Flughafen mit der laengsten Standzeit dazwischen - also der
+        Layover. Bei einem Hin- und Rueckflug nach Tokio ist das Tokio.
+        """
+        if not umlauf or not self.adsbdb:
+            return
+        legs = umlauf.get("legs") or []
+        fluege = [l for l in legs if l.get("flugnummer")]
+        if not fluege:
+            return
+
+        # Layover suchen: groesste Luecke zwischen zwei Fluegen
+        ziel_leg, groesste = fluege[0], None
+        for a, b in zip(fluege, fluege[1:]):
+            if a.get("ende") and b.get("beginn"):
+                pause = b["beginn"] - a["ende"]
+                if groesste is None or pause > groesste:
+                    groesste, ziel_leg = pause, a
+
+        strecke = await self.adsbdb.strecke(str(ziel_leg.get("flugnummer") or "").split()[0])
+        if not strecke:
+            return
+        nach = strecke.get("nach") or {}
+        umlauf["ziel_ort"] = nach.get("ort")
+        umlauf["ziel_flughafen"] = nach.get("name")
+        umlauf["ziel_land"] = nach.get("land")
+        umlauf["rufzeichen"] = strecke.get("rufzeichen_icao")
+
     async def _lh_anreichern(self, aktuell, naechster, jetzt):
         """Holt den Live-Status des relevanten Fluges bei der Lufthansa.
 
