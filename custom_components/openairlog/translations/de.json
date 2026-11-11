@@ -28,7 +28,7 @@
           "anfahrt_minuten": "Weg von zuhause zur Basis",
           "heimweg_minuten": "Weg von der Basis nach Hause",
           "turnaround_minuten": "Umlauf-Grenze an der Basis",
-          "basis_flughafen": "Basis-Flughafen (leer = aus dem Profil)",
+          "basis_flughafen": "Basis-Flughafen (leer = aus dem Profil; ICAO oder IATA, mehrere mit Komma)",
           "briefing_sim_minuten": "Simulator: Briefing davor",
           "debriefing_sim_minuten": "Simulator: Debriefing danach",
           "puffer_minuten": "Persönlicher Puffer (wie früh vor Ort sein?)"

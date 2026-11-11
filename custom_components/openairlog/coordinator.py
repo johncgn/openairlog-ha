@@ -15,6 +15,7 @@ from .adsbdb import AdsbdbApi
 from .dienstcodes import ist_simulator, kategorie_vorschlag
 from .lufthansa import LhFehler, LufthansaApi, auswerten as lh_auswerten
 from .const import (
+    ICAO_ZU_IATA,
     KAT_DIENST, KAT_FREI, KAT_SCHULUNG, KAT_STANDBY,
     STANDARD_BRIEFING_MIN, STANDARD_DEBRIEFING_MIN, STANDARD_KATEGORIEN,
     STANDARD_TURNAROUND_MIN, STATISTIK_JEDER_NTE, UPDATE_INTERVALL,
@@ -329,6 +330,23 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         ergebnis["geplant_dienst"] = kandidat["beginn"]
         return ergebnis
 
+    @staticmethod
+    def _basis_codes(eingabe: str) -> set[str]:
+        """Alle Schreibweisen der Basis: "EDDF" -> {"EDDF", "FRA"}.
+
+        Die Option darf mehrere Codes enthalten ("FRA, EDDF"); jeder bekommt
+        sein Gegenstueck aus der Tabelle dazu.
+        """
+        codes = {c.strip().upper() for c in str(eingabe).replace(";", ",").split(",")
+                 if c.strip()}
+        iata_zu_icao = {v: k for k, v in ICAO_ZU_IATA.items()}
+        for c in list(codes):
+            if c in ICAO_ZU_IATA:
+                codes.add(ICAO_ZU_IATA[c])
+            if c in iata_zu_icao:
+                codes.add(iata_zu_icao[c])
+        return codes
+
     # ------------------------------------------------------- Umlaufbildung
     def _umlaeufe(self, dienste: list[dict]) -> list[dict]:
         """Fasst zusammenhaengende Dienste zu Umlaeufen zusammen.
@@ -352,8 +370,8 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         puffer = timedelta(minutes=int(o.get(CONF_PUFFER_MIN, STANDARD_PUFFER_MIN)))
         codes_sim = self._codes(CONF_CODES_SIM, STANDARD_CODES_SIM)
         turnaround = timedelta(minutes=int(o.get("turnaround_minuten", STANDARD_TURNAROUND_MIN)))
-        basis = (o.get("basis_flughafen")
-                 or (self.profil or {}).get("base_airport") or "").upper()
+        basis = self._basis_codes(o.get("basis_flughafen")
+                                  or (self.profil or {}).get("base_airport") or "")
 
         # Praesenzschulungen zaehlen mit - auch dafuer muss man losfahren.
         # Web Based Training bleibt draussen: das laeuft am Rechner zuhause.
@@ -370,7 +388,8 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
                 aktuell = {"legs": [d]}
             else:
                 letzter = aktuell["legs"][-1]
-                an_basis = (letzter.get("nach") or "").upper() == basis if basis else True
+                an_basis = ((letzter.get("nach") or "").upper().strip() in basis
+                            if basis else True)
                 pause = d["beginn"] - letzter["ende"]
                 if (not an_basis) or pause <= turnaround:
                     aktuell["legs"].append(d)          # gehoert noch dazu

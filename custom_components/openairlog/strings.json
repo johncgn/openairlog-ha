@@ -28,7 +28,7 @@
           "anfahrt_minuten": "Commute home to base",
           "heimweg_minuten": "Commute base to home",
           "turnaround_minuten": "Trip threshold at base",
-          "basis_flughafen": "Base airport (empty = from profile)",
+          "basis_flughafen": "Base airport (empty = from profile; ICAO or IATA, several separated by commas)",
           "briefing_sim_minuten": "Simulator: briefing before",
           "debriefing_sim_minuten": "Simulator: debriefing after",
           "puffer_minuten": "Personal buffer (how early do you want to be there?)"

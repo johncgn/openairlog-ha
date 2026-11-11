@@ -79,6 +79,9 @@ du nicht zuhause bist. Genau der zählt für Heizung und Benachrichtigungen.
   unter der Turnaround-Grenze liegt (Standard 180 Minuten). So bleibt ein
   Kurzstrecken-Tag mit mehreren Legs ein Umlauf, ein neuer Dienst am Folgetag aber
   ein eigener.
+* Die Basis darf als ICAO- **oder** IATA-Code geschrieben sein: `EDDF` und `FRA`
+  gelten als derselbe Flughafen. Das Profil führt meist den ICAO-Code, der Dienstplan
+  oft den IATA-Code — ohne diesen Abgleich verschmolzen alle Dienste zu einem Block.
 * Der Umlauf beginnt mit dem **Briefing** und endet mit der Ankunft plus
   Debriefing. Beides gilt **nur vor und nach echten Flügen** — ein Bodendienst
   oder Simulator beginnt zur angesetzten Zeit.
@@ -120,6 +123,7 @@ gegen die API geprüft.
 | Briefing / Debriefing | Zählt zum Dienst, nur vor und nach echten Flügen |
 | Weg zur Basis / nach Hause | Ergibt „Losfahren" und „Zurück zuhause" |
 | Umlauf-Grenze | Ab welcher Standzeit an der Basis ein neuer Dienst beginnt |
+| Basis-Flughafen | Leer = aus dem Profil. Mehrere Codes möglich, z. B. `FRA, EDDF` |
 | Dienstcodes | Welche Kürzel *frei*, *Bereitschaft* oder *Schulung* bedeuten |
 
 Nicht aufgeführte Dienstcodes gelten als **Dienst** — lieber einmal umsonst

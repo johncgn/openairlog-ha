@@ -51,6 +51,20 @@ STANDARD_PUFFER_MIN = 15
 # zum selben Dienst, wenn die Standzeit darunter liegt (Kurzstrecken-Umlauf).
 STANDARD_TURNAROUND_MIN = 180
 
+# Das Profil fuehrt die Basis meist als ICAO-Code (EDDF), der Dienstplan
+# schreibt die Flughaefen dagegen oft als IATA-Code (FRA). Ohne Abgleich gilt
+# man nie als "zuhause", und alle Dienste verschmelzen zu einem Umlauf.
+# Liste der gaengigen Crew-Basen; Fehlendes laesst sich in den Optionen als
+# "FRA, EDDF" eintragen.
+ICAO_ZU_IATA = {
+    "EDDF": "FRA", "EDDM": "MUC", "EDDL": "DUS", "EDDH": "HAM", "EDDB": "BER",
+    "EDDK": "CGN", "EDDS": "STR", "EDDN": "NUE", "EDDV": "HAJ", "EDDP": "LEJ",
+    "EDDW": "BRE", "LSZH": "ZRH", "LSGG": "GVA", "LOWW": "VIE", "EBBR": "BRU",
+    "EHAM": "AMS", "EGLL": "LHR", "LFPG": "CDG", "LIRF": "FCO", "LEMD": "MAD",
+    "EKCH": "CPH", "ESSA": "ARN", "ENGM": "OSL", "EFHK": "HEL", "EPWA": "WAW",
+    "LKPR": "PRG", "LHBP": "BUD", "EIDW": "DUB", "LPPT": "LIS", "LEBL": "BCN",
+}
+
 # Die Lufthansa-API kennt nur 5 Tage voraus und hat ein begrenztes Kontingent.
 # Deshalb wird nur in einem Fenster um den Flug herum abgefragt.
 STANDARD_LH_FENSTER_H = 24
