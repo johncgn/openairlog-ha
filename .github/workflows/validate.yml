@@ -19,3 +19,15 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: pip install pytest airportsdata
+      - run: pytest -q tests
+      - name: Karte - JavaScript-Syntax
+        run: node --check custom_components/openairlog/www/openairlog-card.js
