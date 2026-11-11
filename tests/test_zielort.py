@@ -88,3 +88,41 @@ def test_kurzstrecke_mit_mehreren_halten_nimmt_laengste_pause(coordinator):
     ]}
     u = anreichern(coordinator(adsbdb=None), u)
     assert u["ziel_iata"] == "VIE" and u["ziel_zeitzone"] == "Europe/Vienna"
+
+
+def test_kurzstrecke_mit_alphanumerischem_rufzeichen(coordinator):
+    # Kurzstrecken-Nightstop FRA-VIE / VIE-FRA: adsbdb kennt die Flugnummern
+    # nicht (in der Luft heisst der Flug DLH7JF). Ort und Zeitzone kommen
+    # trotzdem - aus der Station im Dienstplan.
+    adsbdb = AdsbdbAttrappe({})
+    u = {"legs": [
+        leg(None, "LH1234", "FRA", "VIE", "2026-11-20T17:00", "2026-11-20T18:20"),
+        leg(None, "LH1235", "VIE", "FRA", "2026-11-21T06:00", "2026-11-21T07:25"),
+    ]}
+    u = anreichern(coordinator(adsbdb=adsbdb), u)
+    assert adsbdb.gefragt == ["LH1234"]          # einmal gefragt, keine Antwort
+    assert u["ziel_ort"] == "Wien"
+    assert u["ziel_land_iso"] == "AT"
+    assert u["ziel_zeitzone"] == "Europe/Vienna"
+    assert "rufzeichen" not in u
+
+
+@pytest.mark.parametrize("iata, ort", [
+    ("MUC", "München"), ("FLR", "Florenz"), ("MLA", "Malta"), ("LCA", "Larnaka"),
+    ("BSL", "Basel"), ("YVR", "Vancouver"), ("HND", "Tokio"),
+])
+def test_deutsche_ortsnamen(coordinator, iata, ort):
+    u = {"legs": [leg(None, "LH1", "FRA", iata, "2026-11-20T08:00", "2026-11-20T10:00"),
+                  leg(None, "LH2", iata, "FRA", "2026-11-21T08:00", "2026-11-21T10:00")]}
+    assert anreichern(coordinator(adsbdb=None), u)["ziel_ort"] == ort
+
+
+def test_adsbdb_name_wird_eingedeutscht(coordinator):
+    u = anreichern(coordinator(adsbdb=AdsbdbAttrappe({"LH492": VANCOUVER})), umlauf_vancouver())
+    assert u["ziel_ort"] == "Vancouver" and u["rufzeichen"] == "DLH492"
+
+
+def test_unbekannter_ort_bleibt_wie_geliefert(coordinator):
+    u = {"legs": [leg(None, "LH1", "FRA", "TRF", "2026-11-20T08:00", "2026-11-20T10:00"),
+                  leg(None, "LH2", "TRF", "FRA", "2026-11-21T08:00", "2026-11-21T10:00")]}
+    assert anreichern(coordinator(adsbdb=None), u)["ziel_ort"]   # Sandefjord o. ae., nicht leer

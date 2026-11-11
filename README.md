@@ -90,6 +90,12 @@ Zwei Quellen, beide ohne Konto und ohne Schlüssel:
   der Dienst ist frei und wird privat betrieben. Kennt adsbdb eine Nummer nicht
   oder meldet ein anderes Ziel als der Dienstplan, gilt der Dienstplan.
 
+Auf der **Kurzstrecke** fliegt Lufthansa meist mit alphanumerischen Rufzeichen
+(DLH7JF statt DLH1234) – die kennt adsbdb unter der Flugnummer aus dem
+Dienstplan nicht. Das macht nichts: Ort, Land und Ortszeit kommen aus der
+lokalen Tabelle, nur das Rufzeichen bleibt leer. Gängige Ziele erscheinen mit
+deutschem Namen (Wien, Mailand, Florenz, Malta …).
+
 Neue Attribute am Dienst-Sensor: `ziel_ort`, `ziel_flughafen`, `ziel_land`,
 `ziel_land_iso`, `ziel_iata`, `ziel_zeitzone`, `rufzeichen`.
 

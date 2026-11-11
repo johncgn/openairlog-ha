@@ -300,6 +300,19 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
             umlauf["ziel_land_iso"] = lokal["land_iso"]
             umlauf["ziel_zeitzone"] = lokal["zeitzone"]
 
+        await self._adsbdb_anreichern(umlauf, ziel_leg)
+        # Zuletzt: deutscher Ortsname, wenn bekannt - gilt fuer beide Quellen
+        if umlauf.get("ziel_iata"):
+            umlauf["ziel_ort"] = flughaefen.ort_deutsch(umlauf["ziel_iata"], umlauf.get("ziel_ort"))
+
+    async def _adsbdb_anreichern(self, umlauf: dict, ziel_leg: dict) -> None:
+        """Rufzeichen und Ortsname von adsbdb - nur, wenn die Strecke passt.
+
+        Auf der Kurzstrecke fliegt Lufthansa meist mit alphanumerischen
+        Rufzeichen (DLH7JF); die Flugnummer aus dem Dienstplan ist dort oft
+        unbekannt. Das ist kein Fehler: Ort und Zeitzone stehen dann schon
+        aus der lokalen Tabelle fest.
+        """
         if not self.adsbdb:
             return
         strecke = await self.adsbdb.strecke(str(ziel_leg.get("flugnummer") or "").split()[0])

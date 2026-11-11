@@ -23,6 +23,45 @@ _IATA: dict[str, dict[str, Any]] | None = None
 _ICAO: dict[str, dict[str, Any]] | None = None
 
 
+# Deutsche Ortsnamen fuer gaengige Ziele, nach IATA-Code. airportsdata liefert
+# die Namen bunt gemischt (Munich, Firenze, Napoli, "Bale/Mulhouse", "Luqa"
+# statt Malta, sogar "Larnarca"). Was hier fehlt, bleibt wie geliefert.
+ORT_DE: dict[str, str] = {
+    # Deutschland
+    "MUC": "München", "CGN": "Köln", "DUS": "Düsseldorf", "NUE": "Nürnberg",
+    "HAJ": "Hannover", "FMO": "Münster", "FDH": "Friedrichshafen",
+    # Europa
+    "VIE": "Wien", "SZG": "Salzburg", "GRZ": "Graz", "INN": "Innsbruck",
+    "ZRH": "Zürich", "GVA": "Genf", "BSL": "Basel", "PRG": "Prag", "WAW": "Warschau",
+    "KRK": "Krakau", "WRO": "Breslau", "GDN": "Danzig", "POZ": "Posen",
+    "BUD": "Budapest", "OTP": "Bukarest", "SOF": "Sofia", "BEG": "Belgrad",
+    "BRU": "Brüssel", "LUX": "Luxemburg", "CPH": "Kopenhagen", "ARN": "Stockholm",
+    "GOT": "Göteborg", "OSL": "Oslo", "HEL": "Helsinki", "KEF": "Reykjavík",
+    "LHR": "London", "LCY": "London", "LGW": "London", "MAN": "Manchester",
+    "EDI": "Edinburgh", "DUB": "Dublin", "CDG": "Paris", "ORY": "Paris",
+    "NCE": "Nizza", "LYS": "Lyon", "MRS": "Marseille", "TLS": "Toulouse",
+    "BOD": "Bordeaux", "FCO": "Rom", "MXP": "Mailand", "LIN": "Mailand",
+    "VCE": "Venedig", "FLR": "Florenz", "NAP": "Neapel", "BLQ": "Bologna",
+    "TRN": "Turin", "CTA": "Catania", "PMO": "Palermo", "OLB": "Olbia",
+    "CAG": "Cagliari", "BRI": "Bari", "LIS": "Lissabon", "OPO": "Porto",
+    "FAO": "Faro", "PMI": "Palma", "AGP": "Málaga", "ATH": "Athen",
+    "SKG": "Thessaloniki", "HER": "Heraklion", "RHO": "Rhodos", "CFU": "Korfu",
+    "MLA": "Malta", "LCA": "Larnaka", "PFO": "Paphos", "IST": "Istanbul",
+    "SAW": "Istanbul", "KBP": "Kiew", "RAK": "Marrakesch",
+    "CAI": "Kairo", "TLV": "Tel Aviv",
+    # Langstrecke, wo die Datenbank einen Vorort nennt
+    "YVR": "Vancouver", "EWR": "New York", "JFK": "New York", "IAD": "Washington",
+    "HND": "Tokio", "NRT": "Tokio", "KIX": "Osaka", "ICN": "Seoul",
+    "PEK": "Peking", "PKX": "Peking", "MEX": "Mexiko-Stadt", "CPT": "Kapstadt",
+    "GRU": "São Paulo", "EZE": "Buenos Aires", "SIN": "Singapur",
+}
+
+
+def ort_deutsch(iata: str | None, sonst: str | None = None) -> str | None:
+    """Deutscher Ortsname, sonst was die Quelle geliefert hat."""
+    return ORT_DE.get(str(iata or "").upper()) or sonst
+
+
 def laden() -> bool:
     """Liest beide Tabellen einmalig ein. Blockierend - im Executor aufrufen."""
     global _IATA, _ICAO  # noqa: PLW0603 - bewusst ein Modul-Speicher
