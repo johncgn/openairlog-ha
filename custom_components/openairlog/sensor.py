@@ -89,6 +89,9 @@ class DienstZeitSensor(OpenAirLogEntity, SensorEntity):
             "ziel_flughafen": u.get("ziel_flughafen"),
             "ziel_land": u.get("ziel_land"),
             "rufzeichen": u.get("rufzeichen"),
+            "ziel_iata": u.get("ziel_iata"),
+            "ziel_zeitzone": u.get("ziel_zeitzone"),
+            "ziel_land_iso": u.get("ziel_land_iso"),
             "legs": [
                 {
                     "flug": l.get("flugnummer") or l.get("code"),

@@ -12,6 +12,7 @@ from homeassistant.util import dt as dt_util
 
 from .api import AuthFehler, OpenAirLogApi, OpenAirLogFehler, RateLimitFehler
 from .adsbdb import AdsbdbApi
+from . import flughaefen
 from .dienstcodes import ist_simulator, kategorie_vorschlag
 from .lufthansa import LhFehler, LufthansaApi, auswerten as lh_auswerten
 from .const import (
@@ -261,13 +262,19 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
 
     # -------------------------------------------------------- Lufthansa
     async def _orte_anreichern(self, umlauf: dict | None) -> None:
-        """Ergaenzt Klartext-Orte zu den Flughaefen eines Umlaufs.
+        """Ergaenzt Klartext-Ort und Zeitzone zum Ziel eines Umlaufs.
 
         Das Ziel eines Umlaufs ist NICHT der letzte Halt (das ist die Basis),
         sondern der Flughafen mit der laengsten Standzeit dazwischen - also der
         Layover. Bei einem Hin- und Rueckflug nach Tokio ist das Tokio.
+
+        Zwei Quellen:
+          * lokal (airportsdata): Zeitzone und Rueckfall-Ort - aus der Station
+            im Dienstplan, ohne Netz und ohne Flugnummer
+          * adsbdb: der schoenere Ortsname ("Vancouver" statt "Richmond") und
+            das ICAO-Rufzeichen - braucht eine Flugnummer, die adsbdb kennt
         """
-        if not umlauf or not self.adsbdb:
+        if not umlauf:
             return
         legs = umlauf.get("legs") or []
         fluege = [l for l in legs if l.get("flugnummer")]
@@ -282,13 +289,32 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
                 if groesste is None or pause > groesste:
                     groesste, ziel_leg = pause, a
 
+        if not flughaefen.geladen():
+            await self.hass.async_add_executor_job(flughaefen.laden)
+        lokal = flughaefen.nachschlagen(ziel_leg.get("nach"))
+        if lokal:
+            umlauf["ziel_ort"] = lokal["ort"]
+            umlauf["ziel_flughafen"] = lokal["name"]
+            umlauf["ziel_land"] = lokal["land_iso"]
+            umlauf["ziel_iata"] = lokal["iata"]
+            umlauf["ziel_land_iso"] = lokal["land_iso"]
+            umlauf["ziel_zeitzone"] = lokal["zeitzone"]
+
+        if not self.adsbdb:
+            return
         strecke = await self.adsbdb.strecke(str(ziel_leg.get("flugnummer") or "").split()[0])
         if not strecke:
             return
         nach = strecke.get("nach") or {}
-        umlauf["ziel_ort"] = nach.get("ort")
-        umlauf["ziel_flughafen"] = nach.get("name")
-        umlauf["ziel_land"] = nach.get("land")
+        # Passt die adsbdb-Strecke nicht zur Station im Dienstplan (Umleitung,
+        # geaenderte Flugnummer), gewinnt der Dienstplan.
+        station = str(ziel_leg.get("nach") or "").upper()
+        if station and station not in {str(nach.get("iata") or "").upper(),
+                                       str(nach.get("icao") or "").upper()}:
+            return
+        umlauf["ziel_ort"] = nach.get("ort") or umlauf.get("ziel_ort")
+        umlauf["ziel_flughafen"] = nach.get("name") or umlauf.get("ziel_flughafen")
+        umlauf["ziel_land"] = nach.get("land") or umlauf.get("ziel_land")
         umlauf["rufzeichen"] = strecke.get("rufzeichen_icao")
 
     async def _lh_anreichern(self, aktuell, naechster, jetzt):

@@ -14,6 +14,8 @@
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/johncgn/openairlog-ha/issues",
-  "requirements": [],
-  "version": "0.5.0"
+  "requirements": [
+    "airportsdata==20261103"
+  ],
+  "version": "0.6.0"
 }

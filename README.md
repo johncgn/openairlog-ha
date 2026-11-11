@@ -54,6 +54,8 @@ entity: sensor.openairlog_naechster_dienst   # optional, wird sonst gesucht
 
 ```
 ✈ Nächster Umlauf                    in 3 Tagen
+Tokyo                                    01:47
+HND · Japan                      ORTSZEIT · +7 H
 So 12.07. 12:20 – Mi 15.07. 19:19
 [LH716, LH717]  [2 Abschnitte]
 ──────────────────────────────────────────────
@@ -68,6 +70,28 @@ Die Restzeit färbt sich nach Dringlichkeit — gelb ab drei Stunden, rot ab ein
 Stunde, „jetzt los!" wenn die Losfahrzeit überschritten ist. Maßgeblich ist dabei
 die **Losfahrzeit**, nicht der Dienstbeginn: Bei langer Anfahrt ist das die Zahl,
 die zählt.
+
+Im laufenden Umlauf färbt sich die Karte blau, kurz vor dem Losfahren orange.
+
+## Flughäfen im Klartext und Ortszeit
+
+Die Karte zeigt das **Ziel des Umlaufs** — nicht den letzten Halt (das ist ja
+wieder die Basis), sondern den Ort mit der längsten Standzeit, also das Layover.
+Dazu die **Ortszeit dort** und den Versatz zu zuhause: praktisch für alle, die
+wissen wollen, ob sie dich gerade wecken würden.
+
+Zwei Quellen, beide ohne Konto und ohne Schlüssel:
+
+* **airportsdata** (lokal, MIT-Lizenz) — Zeitzone, Land und Ort aus der Station
+  im Dienstplan. Kein Netzabruf, funktioniert für jeden Flug.
+* **[adsbdb.com](https://www.adsbdb.com)** — der gebräuchlichere Ortsname
+  („Vancouver" statt „Richmond") und das ICAO-Rufzeichen (LH492 → DLH492).
+  Jede Flugnummer wird nur **einmal pro Neustart** abgefragt und dann gemerkt;
+  der Dienst ist frei und wird privat betrieben. Kennt adsbdb eine Nummer nicht
+  oder meldet ein anderes Ziel als der Dienstplan, gilt der Dienstplan.
+
+Neue Attribute am Dienst-Sensor: `ziel_ort`, `ziel_flughafen`, `ziel_land`,
+`ziel_land_iso`, `ziel_iata`, `ziel_zeitzone`, `rufzeichen`.
 
 ## Umläufe statt Einzelflüge
 
@@ -145,5 +169,19 @@ automation:
         data: { temperature: 21 }
 ```
 
+## Mitentwickeln
+
+Die Fachlogik — Umläufe, Dienstcodes, Zielort — hat automatische Tests, die ohne
+installiertes Home Assistant laufen:
+
+```bash
+pip install pytest airportsdata
+pytest tests
+```
+
+Sie laufen bei jedem Push auch auf GitHub, zusammen mit hassfest und der
+HACS-Prüfung.
+
 ## Lizenz
-MIT
+MIT. Flughafendaten: [airportsdata](https://github.com/mborsetti/airportsdata) (MIT)
+und [adsbdb.com](https://www.adsbdb.com).

@@ -31,6 +31,43 @@ function restzeit(ziel) {
   return `in ${tage} Tagen`;
 }
 
+// Minuten seit Mitternacht UTC einer Zone - fuer den Zeitversatz zweier Zonen.
+function zonenMinuten(zone, jetzt) {
+  try {
+    const p = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone, hourCycle: "h23", year: "numeric", month: "2-digit",
+      day: "2-digit", hour: "2-digit", minute: "2-digit",
+    }).formatToParts(jetzt);
+    const g = (typ) => Number((p.find((x) => x.type === typ) || {}).value);
+    return Date.UTC(g("year"), g("month") - 1, g("day"), g("hour"), g("minute")) / 60000;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Ortszeit am Ziel und Versatz zur Heimat ("−9 h"), null bei gleicher Zeit.
+function ortszeit(zone, heimZone) {
+  if (!zone) return null;
+  const jetzt = new Date();
+  const z = zonenMinuten(zone, jetzt);
+  const h = zonenMinuten(heimZone || Intl.DateTimeFormat().resolvedOptions().timeZone, jetzt);
+  if (z === null || h === null) return null;
+  const diff = Math.round(z - h);
+  if (diff === 0) return null;
+  const std = Math.trunc(Math.abs(diff) / 60), min = Math.abs(diff) % 60;
+  return {
+    zeit: jetzt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", timeZone: zone }),
+    versatz: `${diff < 0 ? "−" : "+"}${std}${min ? ":" + String(min).padStart(2, "0") : ""} h`,
+  };
+}
+
+function landName(iso, roh) {
+  if (iso) {
+    try { return new Intl.DisplayNames(["de"], { type: "region" }).of(iso); } catch (e) { /* alt */ }
+  }
+  return roh || "";
+}
+
 class OpenAirLogCard extends HTMLElement {
   setConfig(config) {
     this._config = { titel: "Dienst", ...config };
@@ -88,9 +125,20 @@ class OpenAirLogCard extends HTMLElement {
     const legs = Array.isArray(a.legs) ? a.legs : [];
     const mehrtaegig = a.mehrtaegig;
 
-    let kopf = imDienst ? "Im Dienst" : (legs.length > 1 ? "Nächster Umlauf" : "Nächster Dienst");
-    // Zielort im Klartext, sofern bekannt: "Nächster Umlauf · Tokyo"
-    if (a.ziel_ort) kopf += ` · ${a.ziel_ort}`;
+    const kopf = imDienst ? "Im Dienst" : (legs.length > 1 ? "Nächster Umlauf" : "Nächster Dienst");
+    // Ziel im Klartext mit Ortszeit: "Vancouver · YVR · Kanada | 16:47 −9 h"
+    const heimZone = this._hass.config && this._hass.config.time_zone;
+    const oz = ortszeit(a.ziel_zeitzone, heimZone);
+    const land = landName(a.ziel_land_iso, a.ziel_land);
+    const ziel = a.ziel_ort ? `
+        <div class="ziel">
+          <div class="zl">
+            <div class="stadt">${a.ziel_ort}</div>
+            <div class="zinfo">${[a.ziel_iata, land].filter(Boolean).join(" · ")}</div>
+          </div>
+          ${oz ? `<div class="zr"><div class="uhr">${oz.zeit}</div>
+                  <div class="zinfo">Ortszeit · ${oz.versatz}</div></div>` : ""}
+        </div>` : "";
 
     // Zeitmarken vor dem Dienst. Was zaehlt, haengt von der Art ab:
     //   Flug      -> Briefing und Abflug
@@ -154,8 +202,9 @@ class OpenAirLogCard extends HTMLElement {
         `<span>Du bist <b>${tag(h)} um ${hhmm(h)}</b> zurück</span></div>`);
     }
 
+    const lage = imDienst ? "dienst" : (stufe === "rot" || stufe === "gelb" ? "bald" : "");
     this.shadowRoot.innerHTML = `
-      <ha-card>
+      <ha-card class="${lage}">
         <div class="kopf">
           <ha-icon icon="${imDienst ? "mdi:airplane-takeoff"
             : (art === "simulator" ? "mdi:monitor-dashboard"
@@ -164,6 +213,7 @@ class OpenAirLogCard extends HTMLElement {
           <span class="badge ${stufe}">${badge}</span>
         </div>
 
+        ${ziel}
         <div class="zeit">
           <span class="gross">${tag(beginn)} ${hhmm(beginn)}</span>
           <span class="bis">– ${mehrtaegig ? tag(endeD) + " " : ""}${hhmm(endeD)}</span>
@@ -189,11 +239,27 @@ class OpenAirLogCard extends HTMLElement {
 
   _css() {
     return `<style>
-      ha-card { padding: 14px 16px; }
+      ha-card { padding: 16px 18px 14px; overflow: hidden;
+                transition: background .6s ease; }
+      ha-card.dienst { background: linear-gradient(145deg,
+                color-mix(in srgb, var(--primary-color) 24%, transparent) 0%,
+                color-mix(in srgb, var(--primary-color) 5%, transparent) 70%),
+                var(--ha-card-background, var(--card-background-color)); }
+      ha-card.bald { background: linear-gradient(145deg,
+                rgba(251,146,60,.22) 0%, rgba(251,146,60,.05) 70%),
+                var(--ha-card-background, var(--card-background-color)); }
+      .ziel { display:flex; align-items:flex-end; justify-content:space-between;
+              gap:12px; margin: 2px 0 10px; }
+      .stadt { font-size:30px; font-weight:300; line-height:1.1; letter-spacing:-.3px; }
+      .uhr { font-size:22px; font-weight:300; line-height:1.1; text-align:right;
+             font-variant-numeric: tabular-nums; }
+      .zr .zinfo { text-align:right; }
+      .zinfo { font-size:11px; text-transform:uppercase; letter-spacing:.6px;
+               color: var(--secondary-text-color); margin-top:3px; }
       .kopf { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
       .kopf ha-icon { color: var(--primary-color); --mdc-icon-size: 20px; }
-      .titel { font-weight:600; }
-      .badge { margin-left:auto; font-size:12px; padding:2px 8px; border-radius:10px;
+      .titel { font-weight:600; font-size:14px; opacity:.85; letter-spacing:.2px; }
+      .badge { margin-left:auto; font-size:12px; padding:3px 10px; border-radius:12px;
                background: var(--secondary-background-color); color: var(--secondary-text-color); }
       .badge.gruen { background: var(--success-color, #22c55e); color:#fff; }
       .badge.gelb  { background: var(--warning-color, #ffc107); color:#000; }
@@ -209,13 +275,13 @@ class OpenAirLogCard extends HTMLElement {
       .fuss .rot  { color: var(--error-color, #f44336) !important; font-weight:700; }
       .fuss .gelb { color: var(--warning-color, #ffc107) !important; font-weight:700; }
       .zeit { display:flex; align-items:baseline; gap:8px; }
-      .gross { font-size:24px; font-weight:600; }
+      .gross { font-size:20px; font-weight:500; }
       .bis { color: var(--secondary-text-color); }
       .marken { margin-top:6px; font-size:13px; color: var(--secondary-text-color); }
       .marken b { color: var(--primary-text-color); font-weight:600; }
       .puffer { margin-left:8px; font-size:11px; opacity:.65; white-space:nowrap; }
       .unter { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-      .chip { font-size:12px; padding:2px 8px; border-radius:8px;
+      .chip { font-size:12px; padding:3px 9px; border-radius:10px;
               background: var(--secondary-background-color); color: var(--secondary-text-color); }
       .strecke { margin-top:12px; border-top:1px solid var(--divider-color); padding-top:10px; }
       .leg { display:grid; grid-template-columns:48px 52px 1fr 52px 56px;
