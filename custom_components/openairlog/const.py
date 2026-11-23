@@ -120,3 +120,8 @@ STANDARD_CODES_SIM = ["SIM", "OPC", "LPC", "LOFT", "FFS", "SIM_FFS"]
 STANDARD_LH_TABELLE = True
 
 STANDARD_CODES_WBT = ["WBT_RNP", "AVSEC", "WBT", "ELEARNING"]
+
+# Wetter an den Layover-Orten (Open-Meteo, frei, ohne Schlüssel)
+CONF_WETTER = "wetter_layover"
+STANDARD_WETTER = True
+MAX_LAYOVER_WETTER = 4

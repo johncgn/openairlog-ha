@@ -92,6 +92,8 @@ class DienstZeitSensor(OpenAirLogEntity, SensorEntity):
             "ziel_iata": u.get("ziel_iata"),
             "ziel_zeitzone": u.get("ziel_zeitzone"),
             "ziel_land_iso": u.get("ziel_land_iso"),
+            "layover": [{k: v for k, v in lo.items() if k not in ("breite", "laenge")}
+                        for lo in (u.get("layover") or [])],
             "legs": [
                 {
                     "flug": l.get("flugnummer") or l.get("code"),

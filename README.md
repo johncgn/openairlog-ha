@@ -99,6 +99,30 @@ deutschem Namen (Wien, Mailand, Florenz, Malta …).
 Neue Attribute am Dienst-Sensor: `ziel_ort`, `ziel_flughafen`, `ziel_land`,
 `ziel_land_iso`, `ziel_iata`, `ziel_zeitzone`, `rufzeichen`.
 
+## Wetter am Layover
+
+Für jeden **Layover** des nächsten (bzw. laufenden) Umlaufs zeigt die Karte das
+Wetter **für die ganze Dauer des Aufenthalts**: je Tag Symbol, Höchst- und
+Tiefstwert und Regenmenge. Bei einer Tour mit mehreren Stopps (z. B. Nightstop
+in Wien, dann München) bekommt jeder Ort seine eigene Zeile.
+
+* **Was zählt als Layover?** Jeder Halt außerhalb der Basis, an dem die Pause
+  bis zum nächsten Flug länger ist als die *Umlauf-Grenze* aus den Optionen
+  (Standard 3 Stunden). Eine kurze Wende in Hamburg ist also keiner.
+* **Welche Tage?** Vom Ankunfts- bis zum Abflugtag, gezählt in **Ortszeit** am
+  Layover.
+* **Quelle:** [Open-Meteo](https://open-meteo.com) — frei, ohne Konto und
+  Schlüssel, Vorhersage bis 16 Tage. Je Ort höchstens ein Abruf alle drei
+  Stunden. Liegt der Aufenthalt weiter in der Zukunft, steht dort „Vorhersage
+  ab …".
+* Abschaltbar in den Optionen: *Wetter an den Layover-Orten anzeigen*.
+
+Neues Attribut am Dienst-Sensor: `layover` — Liste mit `iata`, `ort`,
+`land_iso`, `zeitzone`, `ankunft`, `abflug`, `stunden` und `wetter` (je Tag
+`datum`, `text`, `symbol`, `max`, `min`, `regen_mm`, `regen_chance`).
+
+Danke an den Kollegen für die Idee!
+
 ## Umläufe statt Einzelflüge
 
 Zusammenhängende Flüge werden zu einem **Umlauf** gebündelt — dem Zeitraum, in dem
@@ -190,4 +214,5 @@ HACS-Prüfung.
 
 ## Lizenz
 MIT. Flughafendaten: [airportsdata](https://github.com/mborsetti/airportsdata) (MIT)
-und [adsbdb.com](https://www.adsbdb.com).
+und [adsbdb.com](https://www.adsbdb.com). Wetterdaten: [Open-Meteo.com](https://open-meteo.com)
+(CC BY 4.0).

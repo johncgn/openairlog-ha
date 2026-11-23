@@ -16,6 +16,7 @@ from homeassistant.helpers.selector import (
 
 from .api import AuthFehler, OpenAirLogApi, OpenAirLogFehler
 from .const import (
+    CONF_WETTER, STANDARD_WETTER,
     CONF_ANFAHRT_MIN, CONF_API_KEY, CONF_BASIS, CONF_BRIEFING_MIN,
     CONF_DEBRIEFING_MIN, CONF_HEIMWEG_MIN, CONF_TAGE_RUECK, CONF_TAGE_VORAUS,
     CONF_LH_FENSTER, CONF_LH_ID, CONF_LH_SECRET, CONF_TURNAROUND_MIN,
@@ -134,6 +135,7 @@ class OpenAirLogOptionsFlow(OptionsFlow):
                          CONF_CODES_SIM, CONF_CODES_WBT):
                 daten[feld] = _liste(daten.get(feld))
             daten[CONF_LH_TABELLE] = bool(daten.get(CONF_LH_TABELLE, STANDARD_LH_TABELLE))
+            daten[CONF_WETTER] = bool(daten.get(CONF_WETTER, STANDARD_WETTER))
             for feld in (CONF_BRIEFING_MIN, CONF_DEBRIEFING_MIN,
                          CONF_BRIEFING_SIM_MIN, CONF_DEBRIEFING_SIM_MIN,
                          CONF_PUFFER_MIN, CONF_ANFAHRT_MIN,
@@ -152,6 +154,8 @@ class OpenAirLogOptionsFlow(OptionsFlow):
         schema = vol.Schema({
             vol.Required(CONF_LH_TABELLE,
                          default=o.get(CONF_LH_TABELLE, STANDARD_LH_TABELLE)): BooleanSelector(),
+            vol.Required(CONF_WETTER,
+                         default=o.get(CONF_WETTER, STANDARD_WETTER)): BooleanSelector(),
             vol.Optional("codes_frei", default=", ".join(
                 _liste(o.get("codes_frei")) or _liste(_codes(KAT_FREI)))): str,
             vol.Optional("codes_standby", default=", ".join(

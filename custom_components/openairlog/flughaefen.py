@@ -83,7 +83,7 @@ def geladen() -> bool:
 
 
 def nachschlagen(code: str | None) -> dict[str, Any] | None:
-    """IATA (FRA) oder ICAO (EDDF) -> {iata, icao, ort, name, land_iso, zeitzone}."""
+    """IATA (FRA) oder ICAO (EDDF) -> {iata, icao, ort, name, land_iso, zeitzone, breite, laenge}."""
     if not code or _IATA is None:
         return None
     c = str(code).strip().upper()
@@ -97,4 +97,6 @@ def nachschlagen(code: str | None) -> dict[str, Any] | None:
         "name": roh.get("name") or None,
         "land_iso": roh.get("country") or None,
         "zeitzone": roh.get("tz") or None,
+        "breite": roh.get("lat"),
+        "laenge": roh.get("lon"),
     }

@@ -45,7 +45,8 @@
           "tage_rueckblick": "Look back (days)",
           "codes_simulator": "Codes for simulator (comma separated)",
           "codes_wbt": "Codes for web based training (from home)",
-          "lufthansa_tabelle": "Use Lufthansa symbol list"
+          "lufthansa_tabelle": "Use Lufthansa symbol list",
+          "wetter_layover": "Show weather at layover stations"
         }
       },
       "lufthansa": {

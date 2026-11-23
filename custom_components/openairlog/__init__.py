@@ -13,6 +13,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.loader import async_get_integration
 
 from .adsbdb import AdsbdbApi
+from .wetter import WetterApi
 from .api import OpenAirLogApi
 from .const import (
     CONF_API_KEY,
@@ -123,7 +124,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     lh_secret = entry.options.get(CONF_LH_SECRET)
     lh = LufthansaApi(session, lh_id, lh_secret) if lh_id and lh_secret else None
     adsbdb = AdsbdbApi(session)
-    koordinator = OpenAirLogCoordinator(hass, api, dict(entry.options), lh, entry, adsbdb)
+    koordinator = OpenAirLogCoordinator(hass, api, dict(entry.options), lh, entry, adsbdb,
+                                        WetterApi(session))
     await koordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = koordinator

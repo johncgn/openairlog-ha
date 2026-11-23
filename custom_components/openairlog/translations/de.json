@@ -45,7 +45,8 @@
           "tage_rueckblick": "Rückblick (Tage)",
           "codes_simulator": "Codes für Simulator (Komma getrennt)",
           "codes_wbt": "Codes für Web Based Training (von zuhause)",
-          "lufthansa_tabelle": "Lufthansa-Symbolliste verwenden"
+          "lufthansa_tabelle": "Lufthansa-Symbolliste verwenden",
+          "wetter_layover": "Wetter an den Layover-Orten anzeigen"
         }
       },
       "lufthansa": {

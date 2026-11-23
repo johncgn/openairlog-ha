@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -12,10 +13,12 @@ from homeassistant.util import dt as dt_util
 
 from .api import AuthFehler, OpenAirLogApi, OpenAirLogFehler, RateLimitFehler
 from .adsbdb import AdsbdbApi
+from .wetter import WetterApi
 from . import flughaefen
 from .dienstcodes import ist_simulator, kategorie_vorschlag
 from .lufthansa import LhFehler, LufthansaApi, auswerten as lh_auswerten
 from .const import (
+    CONF_WETTER, MAX_LAYOVER_WETTER, STANDARD_WETTER,
     ICAO_ZU_IATA,
     KAT_DIENST, KAT_FREI, KAT_SCHULUNG, KAT_STANDBY,
     STANDARD_BRIEFING_MIN, STANDARD_DEBRIEFING_MIN, STANDARD_KATEGORIEN,
@@ -76,7 +79,8 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
                  optionen: dict[str, Any],
                  lh: LufthansaApi | None = None,
                  config_entry: ConfigEntry | None = None,
-                 adsbdb: AdsbdbApi | None = None) -> None:
+                 adsbdb: AdsbdbApi | None = None,
+                 wetter: WetterApi | None = None) -> None:
         kwargs: dict[str, Any] = {
             "name": "OpenAirLog",
             "update_interval": UPDATE_INTERVALL,
@@ -91,6 +95,7 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         self.api = api
         self.lh = lh
         self.adsbdb = adsbdb
+        self.wetter = wetter
         self.optionen = optionen
         self.profil: dict = {}
         self._statistik: dict = {}
@@ -304,6 +309,73 @@ class OpenAirLogCoordinator(DataUpdateCoordinator):
         # Zuletzt: deutscher Ortsname, wenn bekannt - gilt fuer beide Quellen
         if umlauf.get("ziel_iata"):
             umlauf["ziel_ort"] = flughaefen.ort_deutsch(umlauf["ziel_iata"], umlauf.get("ziel_ort"))
+
+        umlauf["layover"] = self._layover(fluege)
+        await self._wetter_anreichern(umlauf["layover"])
+
+    def _layover(self, fluege: list[dict]) -> list[dict]:
+        """Alle Layover eines Umlaufs, in Reihenfolge.
+
+        Ein Layover ist ein Halt ausserhalb der Basis, an dem die Pause bis
+        zum naechsten Flug laenger ist als die Umlauf-Grenze (Turnaround,
+        Standard 3 h). Ein kurzer Wendeaufenthalt in Hamburg ist also keiner,
+        ein Nightstop in Wien schon - und bei einer Tour mit mehreren Stopps
+        werden es entsprechend mehrere.
+        """
+        o = self.optionen
+        turnaround = timedelta(minutes=int(o.get("turnaround_minuten", STANDARD_TURNAROUND_MIN)))
+        basis = self._basis_codes(o.get("basis_flughafen")
+                                  or (self.profil or {}).get("base_airport") or "")
+        out = []
+        for a, b in zip(fluege, fluege[1:]):
+            station = str(a.get("nach") or "").upper().strip()
+            if not station or station in basis or not (a.get("ende") and b.get("beginn")):
+                continue
+            pause = b["beginn"] - a["ende"]
+            if pause <= turnaround:
+                continue
+            lokal = flughaefen.nachschlagen(station) or {}
+            iata = lokal.get("iata") or station
+            out.append({
+                "iata": iata,
+                "ort": flughaefen.ort_deutsch(iata, lokal.get("ort") or station),
+                "land_iso": lokal.get("land_iso"),
+                "zeitzone": lokal.get("zeitzone"),
+                "breite": lokal.get("breite"),
+                "laenge": lokal.get("laenge"),
+                "ankunft": a["ende"].isoformat(),
+                "abflug": b["beginn"].isoformat(),
+                "stunden": round(pause.total_seconds() / 3600, 1),
+            })
+        return out
+
+    async def _wetter_anreichern(self, layover: list[dict]) -> None:
+        """Tagesvorhersage fuer jeden Layover - nur die Tage des Aufenthalts.
+
+        Die Tage zaehlen in Ortszeit: vom Ankunfts- bis zum Abflugtag. Liegt
+        der Aufenthalt (noch) jenseits der 16-Tage-Vorhersage, gibt es statt
+        Wetter einen Hinweis, ab wann es eins gibt.
+        """
+        if not self.wetter or not layover:
+            return
+        if not self.optionen.get(CONF_WETTER, STANDARD_WETTER):
+            return
+        for lo in layover[:MAX_LAYOVER_WETTER]:
+            if lo.get("breite") is None or lo.get("laenge") is None:
+                continue
+            try:
+                zone = ZoneInfo(lo["zeitzone"]) if lo.get("zeitzone") else timezone.utc
+            except Exception:  # noqa: BLE001 - unbekannte Zone -> UTC
+                zone = timezone.utc
+            von = datetime.fromisoformat(lo["ankunft"]).astimezone(zone).date()
+            bis = datetime.fromisoformat(lo["abflug"]).astimezone(zone).date()
+            tage = await self.wetter.tage(lo["breite"], lo["laenge"])
+            if tage is None:
+                continue
+            lo["wetter"] = [t for t in tage if von.isoformat() <= t["datum"] <= bis.isoformat()]
+            if not lo["wetter"] and tage and tage[-1]["datum"] < von.isoformat():
+                frei_ab = von - timedelta(days=len(tage) - 1)
+                lo["wetter_ab"] = frei_ab.isoformat()
 
     async def _adsbdb_anreichern(self, umlauf: dict, ziel_leg: dict) -> None:
         """Rufzeichen und Ortsname von adsbdb - nur, wenn die Strecke passt.

@@ -77,11 +77,12 @@ def coordinator():
     """Coordinator ohne __init__ - Optionen und Profil setzt der Test."""
     from openairlog.coordinator import OpenAirLogCoordinator
 
-    def bauen(optionen=None, profil=None, adsbdb=None):
+    def bauen(optionen=None, profil=None, adsbdb=None, wetter=None):
         k = OpenAirLogCoordinator.__new__(OpenAirLogCoordinator)
         k.optionen = optionen or {}
         k.profil = profil or {}
         k.adsbdb = adsbdb
+        k.wetter = wetter
         k.hass = _Hass()
         return k
 

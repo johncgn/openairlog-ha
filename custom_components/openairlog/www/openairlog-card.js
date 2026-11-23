@@ -68,6 +68,35 @@ function landName(iso, roh) {
   return roh || "";
 }
 
+// Wetter an den Layover-Orten: je Ort eine Zeile Tage mit Symbol, max/min, Regen
+function wetterBlock(layover) {
+  const liste = (Array.isArray(layover) ? layover : []).filter(l => (l.wetter && l.wetter.length) || l.wetter_ab);
+  if (!liste.length) return "";
+  const wt = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+  const farbe = (sym) => /sunny/.test(sym) ? "#fbbf24" : /partly/.test(sym) ? "#fcd34d"
+    : /lightning|hail/.test(sym) ? "#a78bfa" : /snow/.test(sym) ? "#e2e8f0"
+    : /rain|pouring/.test(sym) ? "#60a5fa" : "var(--secondary-text-color)";
+  const naechte = (l) => { const h = Number(l.stunden || 0); return h >= 20 ? `${Math.round(h / 24)} ${Math.round(h / 24) === 1 ? "Tag" : "Tage"}` : `${Math.round(h)} h`; };
+  return liste.map((l) => {
+    const kopf = `<div class="wkopf"><ha-icon icon="mdi:weather-partly-cloudy"></ha-icon>
+      <span>${l.ort || l.iata}</span><span class="wdauer">${l.iata || ""} · ${naechte(l)}</span></div>`;
+    if (!l.wetter || !l.wetter.length) {
+      const ab = l.wetter_ab ? new Date(l.wetter_ab + "T12:00:00") : null;
+      return kopf + `<div class="whinweis">Vorhersage ab ${ab ? ab.getDate() + "." + (ab.getMonth() + 1) + "." : "bald"}</div>`;
+    }
+    const tage = l.wetter.map((t) => {
+      const d = new Date(t.datum + "T12:00:00");
+      const regen = t.regen_mm != null && t.regen_mm >= 0.5 ? `${String(t.regen_mm).replace(".", ",")} mm` : "";
+      return `<div class="wtag" title="${t.text || ""}">
+        <div class="wwt">${wt[d.getDay()]} ${d.getDate()}.</div>
+        <ha-icon icon="mdi:${t.symbol || "weather-cloudy"}" style="color:${farbe(t.symbol || "")}"></ha-icon>
+        <div class="wtemp">${t.max != null ? t.max + "°" : "–"}<span>${t.min != null ? t.min + "°" : ""}</span></div>
+        <div class="wregen">${regen}</div></div>`;
+    }).join("");
+    return kopf + `<div class="wtage">${tage}</div>`;
+  }).join("");
+}
+
 class OpenAirLogCard extends HTMLElement {
   setConfig(config) {
     this._config = { titel: "Dienst", ...config };
@@ -232,6 +261,7 @@ class OpenAirLogCard extends HTMLElement {
         </div>
 
         ${strecke ? `<div class="strecke">${strecke}</div>` : ""}
+        ${wetterBlock(a.layover) ? `<div class="wetter">${wetterBlock(a.layover)}</div>` : ""}
         ${fuss.length ? `<div class="fuss">${fuss.join("")}</div>` : ""}
       </ha-card>
       ${this._css()}`;
@@ -293,6 +323,19 @@ class OpenAirLogCard extends HTMLElement {
                     border-top:1px dashed var(--divider-color); z-index:0; }
       .lf { position:relative; z-index:1; background: var(--ha-card-background, var(--card-background-color));
             padding:0 6px; }
+      .wetter { margin-top:12px; border-top:1px solid var(--divider-color); padding-top:10px; }
+      .wkopf { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600; margin:2px 0 6px; }
+      .wkopf ha-icon { --mdc-icon-size:16px; color: var(--secondary-text-color); }
+      .wdauer { margin-left:auto; font-size:11px; font-weight:400; color: var(--secondary-text-color);
+                text-transform:uppercase; letter-spacing:.5px; }
+      .wtage { display:grid; grid-template-columns:repeat(auto-fill, minmax(52px, 1fr)); gap:6px; margin-bottom:8px; }
+      .wtag { text-align:center; padding:6px 2px; border-radius:10px; background: var(--secondary-background-color); }
+      .wtag ha-icon { --mdc-icon-size:22px; display:block; margin:3px auto; }
+      .wwt { font-size:11px; color: var(--secondary-text-color); }
+      .wtemp { font-size:13px; font-weight:500; }
+      .wtemp span { margin-left:3px; font-weight:400; color: var(--secondary-text-color); }
+      .wregen { font-size:10px; color:#60a5fa; min-height:12px; }
+      .whinweis { font-size:12px; color: var(--secondary-text-color); margin-bottom:8px; }
       .fuss { margin-top:12px; padding-top:10px; font-size:13px;
               border-top:1px solid var(--divider-color); color: var(--secondary-text-color); }
       .fz { display:flex; align-items:center; gap:8px; padding:2px 0; }
